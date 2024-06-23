@@ -1,0 +1,39 @@
+{
+  "name": "phico/phico",
+  "description": "An insanely fast, dependency-free framework you will fall in love with",
+  "type": "project",
+  "license": "BSD-3-Clause",
+  "bin": [
+    "bin/phico"
+  ],
+  "autoload": {
+    "psr-4": {
+      "Phico\\": "src/"
+    },
+    "files": [
+      "src/functions.php"
+    ]
+  },
+  "authors": [
+    {
+      "name": "indgy",
+      "email": "me@indgy.uk"
+    }
+  ],
+  "minimum-stability": "stable",
+  "config": {
+    "allow-plugins": {
+      "phpstan/extension-installer": true,
+      "pestphp/pest-plugin": true
+    }
+  },
+  "require": {
+    "php": "^8.0",
+    "ext-pdo": "*",
+    "phico/cli": "^0.1.0"
+  },
+  "require-dev": {
+    "phpstan/phpstan": "*",
+    "pestphp/pest": "^2.34"
+  }
+}
