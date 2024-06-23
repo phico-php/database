@@ -1,14 +1,11 @@
 {
-  "name": "phico/phico",
-  "description": "An insanely fast, dependency-free framework you will fall in love with",
-  "type": "project",
+  "name": "phico/database",
+  "description": "Lightweight database support for Phico",
+  "type": "library",
   "license": "BSD-3-Clause",
-  "bin": [
-    "bin/phico"
-  ],
   "autoload": {
     "psr-4": {
-      "Phico\\": "src/"
+      "Phico\\Database\\": "src/"
     },
     "files": [
       "src/functions.php"
