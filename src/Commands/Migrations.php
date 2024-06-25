@@ -46,7 +46,7 @@ class Migrations extends Cli
             sleep(1);
         }
 
-        files()->write(path("$this->path/$filename"), $this->getTemplate($name));
+        files(path("$this->path/$filename"))->write($this->getTemplate($name));
 
         $this->success("Created migration at '$this->path/$filename'");
 
@@ -317,7 +317,8 @@ class Migrations extends Cli
     private function getMigrationFiles(): array
     {
         $out = [];
-        foreach (folders()->list(path($this->path)) as $file) {
+        $folders = folders(path($this->path));
+        foreach ($folders->list() as $file) {
             if (substr($file, -4) == '.php') {
                 $out[] = $file;
             }
@@ -354,7 +355,7 @@ class Migrations extends Cli
     }
     private function instantiate(string $filename): Migration
     {
-        $content = files()->read(path("$this->path/$filename"));
+        $content = files(path("$this->path/$filename"))->read();
         if (false === preg_match('/\s?(final class|class)\s+([a-zA-Z_\x7f-\xff][a-zA-Z0-9_\x7f-\xff]*)/i', $content, $matches)) {
             throw new \RuntimeException(sprintf('Cannot get class name from migration file at %s', path("$this->path/$filename")));
         }

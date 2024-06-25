@@ -36,11 +36,13 @@ class Seeds extends Cli
         // create the filename
         $filename = sprintf("%s.php", str()->toCamelCase($name));
 
-        if (files()->exists(path("$this->path/$filename"))) {
+        // create the files instance
+        $file = files(path("$this->path/$filename"));
+        if ($file->exists()) {
             throw new \InvalidArgumentException(sprintf("A seed with the name '%s' exists at '%s', please delete it if you want to create a new seed with the same name", $name, $filename));
         }
 
-        files()->write(path("$this->path/$filename"), $this->getTemplate($name));
+        $file->write($this->getTemplate($name));
 
         $this->write("Created seed at '$this->path/$filename'");
     }
@@ -48,7 +50,7 @@ class Seeds extends Cli
     {
         $this->title("Showing seeds");
 
-        $list = folders()->list($this->path);
+        $list = folders($this->path)->list();
         if (empty($list)) {
             $this->write(sprintf("No seeds found in '%s'\n", path($this->path)));
             exit(1);
@@ -66,7 +68,7 @@ class Seeds extends Cli
 
         $filename = ltrim(str_replace(path($this->path), '', $name), '/');
 
-        if (!files()->exists(path("$this->path/$filename"))) {
+        if (!files(path("$this->path/$filename"))->exists()) {
             $this->error("\nCannot find seed file '$filename' in '$this->path'\n");
             exit(1);
         }
@@ -101,7 +103,7 @@ class Seeds extends Cli
     }
     private function instantiate(string $filename): Seed
     {
-        $content = files()->read(path("$this->path/$filename"));
+        $content = files(path("$this->path/$filename"))->read();
         if (false === preg_match('/\s?(final class|class)\s+([a-zA-Z_\x7f-\xff][a-zA-Z0-9_\x7f-\xff]*)/i', $content, $matches)) {
             throw new \RuntimeException(sprintf('Cannot get class name from seed file at %s', path("$this->path/$filename")));
         }
