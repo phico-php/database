@@ -82,7 +82,38 @@ class Table
             $this->indices[$name] = $index;
 
         }
+    }
+    public function foreign(array|string $columns, string $name = null): Index
+    {
+        try {
 
+            if (is_string($columns)) {
+                $columns = [$columns];
+            }
+
+            sort($columns);
+
+            if (is_null($name)) {
+                $name = sprintf('%s_index_%s', $this->name, join('_', $columns));
+            }
+
+            if (array_key_exists($name, $this->indices)) {
+                throw new InvalidArgumentException("Cannot create duplicate index name '$name'");
+            }
+
+            $index = new Foreign($this->dialect, $this->name, $columns, $name);
+            return $index;
+
+        } catch (\Throwable $th) {
+
+            throw $th;
+
+        } finally {
+
+            // not the best practise, but a great feature in this case ;)
+            $this->indices[$name] = $index;
+
+        }
     }
     public function alter(string $name): self
     {
@@ -255,10 +286,10 @@ class Table
         );
     }
 
-    private function generateIndexName(array $columns): string
-    {
-        return sprintf('%s_index_%s', $this->name, join('_', $columns));
-    }
+    // private function generateIndexName(array $columns): string
+    // {
+    //     return sprintf('%s_index_%s', $this->name, join('_', $columns));
+    // }
     private function quote(string $str): string
     {
         return match ($this->dialect) {

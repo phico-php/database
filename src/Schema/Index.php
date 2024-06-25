@@ -23,12 +23,11 @@ class Index
         $this->mode = 'create';
         $this->driver = $driver;
         $this->table = $table;
-        $this->name = $name;
+        $this->name = $name ?? $this->makeName($columns);
         $this->columns = $columns;
         $this->drop = false;
         $this->unique = false;
     }
-
     public function drop(): self
     {
         $this->mode = 'drop';
@@ -49,25 +48,48 @@ class Index
         return $this;
     }
 
-
     public function __toString(): string
     {
-        if ($this->mode == 'drop') {
-            return match ($this->driver) {
-                'mysql', 'mariadb' => sprintf('DROP INDEX %s ON %s;', $this->name, $this->table),
-                'pgsql', 'sqlite' => sprintf('DROP INDEX %s;', $this->name),
-            };
-        }
+        return match ($this->mode) {
+            'drop' => $this->makeDropSyntax(),
+            'rename' => $this->makeRenameSyntax(),
+            'create' => $this->makeCreateSyntax(),
+        };
+    }
 
-        if ($this->mode == 'rename') {
-            return match ($this->driver) {
-                'mysql', 'mariadb' => sprintf('ALTER TABLE %s RENAME INDEX %s TO %s;', $this->table, $this->rename->old, $this->rename->new),
-                'pgsql' => sprintf('ALTER INDEX %s RENAME TO %s;', $this->rename->old, $this->rename->new),
-                'sqlite' => sprintf('DROP INDEX %s; CREATE INDEX %s ON %s (%s);', $this->rename->old, $this->rename->new, $this->table, join(', ', $this->columns)),
-            };
-        }
+    private function makeName(array $columns): string
+    {
+        return sprintf(
+            '%s_%s%s_index',
+            $this->name,
+            ($this->unique) ? '_unique ' : '',
+            join('_', $columns)
+        );
+    }
 
-        return sprintf('CREATE%s INDEX %s ON %s (%s);', ($this->unique === true) ? ' UNIQUE' : '', $this->name, $this->table, join(', ', $this->columns));
-
+    private function makeCreateSyntax(): string
+    {
+        return sprintf(
+            'CREATE%s INDEX %s ON %s (%s);',
+            ($this->unique) ? ' UNIQUE' : '',
+            $this->name,
+            $this->table,
+            join(', ', $this->columns)
+        );
+    }
+    private function makeDropSyntax(): string
+    {
+        return match ($this->driver) {
+            'mysql', 'mariadb' => sprintf('DROP INDEX %s ON %s;', $this->name, $this->table),
+            'pgsql', 'sqlite' => sprintf('DROP INDEX %s;', $this->name),
+        };
+    }
+    private function makeRenameSyntax(): string
+    {
+        return match ($this->driver) {
+            'mysql', 'mariadb' => sprintf('ALTER TABLE %s RENAME INDEX %s TO %s;', $this->table, $this->rename->old, $this->rename->new),
+            'pgsql' => sprintf('ALTER INDEX %s RENAME TO %s;', $this->rename->old, $this->rename->new),
+            'sqlite' => sprintf('DROP INDEX %s; CREATE INDEX %s ON %s (%s);', $this->rename->old, $this->rename->new, $this->table, join(', ', $this->columns)),
+        };
     }
 }
