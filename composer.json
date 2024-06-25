@@ -27,7 +27,7 @@
   "require": {
     "php": "^8.0",
     "ext-pdo": "*",
-    "phico/cli": "^0.1.0"
+    "phico/cli": "dev-main"
   },
   "require-dev": {
     "phpstan/phpstan": "*",
