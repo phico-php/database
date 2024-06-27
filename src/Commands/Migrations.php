@@ -12,7 +12,7 @@ use Phico\Database\Migration;
 
 class Migrations extends Cli
 {
-    protected string $help = 'Usage: pico db migrations (init|create|todo|do|done|undo|drop) [name]';
+    protected string $help = 'Usage: phico database migrations (init|create|todo|do|done|undo|drop) [name]';
     protected string $table;
     protected string $path;
     protected DB $db;

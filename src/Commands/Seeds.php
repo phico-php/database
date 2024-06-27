@@ -11,7 +11,7 @@ use Phico\Database\Seed;
 
 class Seeds extends Cli
 {
-    protected string $help = 'Usage: pico db seeds (create|list|run) [name]';
+    protected string $help = 'Usage: phico database seeds (create|list|run) [name]';
     protected string $path;
     protected DB $db;
 
