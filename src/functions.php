@@ -10,11 +10,16 @@ if (!function_exists('db')) {
         $conn = (is_null($conn)) ? config("database.use") : $conn;
 
         // fetch connection details
-        $config = (object) config("database.connections.$conn");
+        $config = config("database.connections.$conn");
+
+        // create dsn
+        $dsn = ($config['driver'] === 'sqlite')
+            ? sprintf('%s:%s', $config['driver'], $config['database'])
+            : sprintf('%s:host=%s;port=%s;dbname=%s', $config['driver'], $config['host'], $config['port'], $config['database']);
 
         // try to create PDO connection using config details
         try {
-            $pdo = new PDO($config->dsn, $config->username, $config->password, $config->options = []);
+            $pdo = new PDO($dsn, $config['username'], $config['password'], $config['options'] ?? []);
             return new \Phico\Database\DB($pdo);
         } catch (PDOException $e) {
             logger()->error(sprintf('Failed to connect to the database, %s in %s line %d', $e->getMessage(), $e->getFile(), $e->getLine()));
