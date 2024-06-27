@@ -6,7 +6,7 @@ namespace Phico\Database\Commands;
 
 use Phico\Cli\{Args, Cli};
 use Phico\Database\DB;
-use Phico\Database\Seed;
+use Phico\Database\Schema\Seed;
 
 
 class Seeds extends Cli

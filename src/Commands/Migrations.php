@@ -6,7 +6,7 @@ namespace Phico\Database\Commands;
 
 use Phico\Cli\{Args, Cli};
 use Phico\Database\DB;
-use Phico\Database\Migration;
+use Phico\Database\Schema\Migration;
 
 
 class Migrations extends Cli
