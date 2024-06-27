@@ -2,7 +2,7 @@
 
 declare(strict_types=1);
 
-namespace Phico\Database;
+namespace Phico\Database\Schema;
 
 use Phico\Database\DB;
 
