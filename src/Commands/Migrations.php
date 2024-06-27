@@ -5,7 +5,6 @@ declare(strict_types=1);
 namespace Phico\Database\Commands;
 
 use Phico\Cli\{Args, Cli};
-use Phico\Database\DatabaseException;
 use Phico\Database\DB;
 use Phico\Database\Migration;
 
@@ -291,7 +290,7 @@ class Migrations extends Cli
             // namespace
             "\nnamespace App\Resources\Migrations;\n",
             // use statements
-            "\nuse Phico\Database\Migration;\n",
+            "\nuse Phico\Database\Schema\Migration;\n",
             // class header
             "\nfinal class $name extends Migration",
             // up method

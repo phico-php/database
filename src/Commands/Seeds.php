@@ -125,7 +125,7 @@ class Seeds extends Cli
             // namespace
             "\nnamespace App\Resources\Seeds;\n",
             // use statements
-            "\nuse Phico\Database\Seed;\n",
+            "\nuse Phico\Database\Schema\Seed;\n",
             // class header
             "\nfinal class $name extends Seed",
             // up method
