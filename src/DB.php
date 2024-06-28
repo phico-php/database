@@ -13,6 +13,7 @@ use Throwable;
 class DB
 {
     protected PDO $conn;
+    public readonly string $driver;
     protected int $tx_level;
 
 
@@ -23,6 +24,7 @@ class DB
     public function __construct(PDO $conn)
     {
         $this->conn = $conn;
+        $this->driver = $conn->getAttribute(PDO::ATTR_DRIVER_NAME);
         $this->tx_level = 0;
     }
     /**
@@ -58,14 +60,6 @@ class DB
         }
 
         return $out;
-    }
-    /**
-     * Returns the PDO driver name
-     * @return string
-     */
-    public function driver(): string
-    {
-        return $this->conn->getAttribute(PDO::ATTR_DRIVER_NAME);
     }
     /**
      * Returns the last insert id from the internal PDOStatement pointer

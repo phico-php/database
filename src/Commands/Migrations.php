@@ -60,7 +60,7 @@ class Migrations extends Cli
 
         $this->info("Initialising the migrations table using '$this->table'");
 
-        $sql = match ($this->db->driver()) {
+        $sql = match ($this->db->driver) {
             'sqlite' => "CREATE TABLE IF NOT EXISTS $this->table
                     (
                         id INTEGER PRIMARY KEY AUTOINCREMENT,
@@ -303,7 +303,7 @@ class Migrations extends Cli
     {
         $db_name = ''; // @TODO fetch db name from config for mysql
 
-        $sql = match ($this->db->driver()) {
+        $sql = match ($this->db->driver) {
             'sqlite' => "SELECT name FROM sqlite_master WHERE type='table' AND name='$table';",
             'pgsql', 'psql' => "SELECT EXISTS (SELECT 1 FROM information_schema.tables WHERE table_name = '$table')",
             'mysql', 'mariadb' => "SELECT COUNT(*) FROM information_schema.tables WHERE table_schema = '$db_name'  AND table_name = '$table';"
