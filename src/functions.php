@@ -27,3 +27,12 @@ if (!function_exists('db')) {
         }
     }
 }
+if (!function_exists('table')) {
+    function table(string $dialect = null): \Phico\Database\Schema\Table
+    {
+        if (is_null($dialect)) {
+            $dialect = db()->driver;
+        }
+        return new \Phico\Database\Schema\Table($dialect);
+    }
+}
