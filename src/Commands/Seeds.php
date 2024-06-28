@@ -129,7 +129,7 @@ class Seeds extends Cli
             // class header
             "\nfinal class $name extends Seed",
             // up method
-            "\n\tpublic function seed(): void\n\t{\n\t\t\$this->db->raw(\"\n\n\t\t\");\n\t}"
+            "\n\tpublic function seed(): void\n\t{\n\t\t// \$sql = '';\n\t\t\$this->db->raw(\$sql);\n\t}"
         );
     }
 }

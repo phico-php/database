@@ -294,9 +294,9 @@ class Migrations extends Cli
             // class header
             "\nfinal class $name extends Migration",
             // up method
-            "\n\tpublic function up(): void\n\t{\n\t\t\$this->db->raw(\"\n\n\t\t\");\n\t}",
+            "\n\tpublic function up(): void\n\t{\n\t\t\$table = table();\n\t\t\$this->db->raw(\$table->toSql());\n\t}",
             // down method
-            "\n\tpublic function down(): void\n\t{\n\t\t// \$this->db->raw(\"\");\n\t}"
+            "\n\tpublic function down(): void\n\t{\n\t\t\$table = table();\n\t\t\$this->db->raw(\$table->toSql());\n\t}"
         );
     }
     private function tableExists(string $table): bool
@@ -331,7 +331,7 @@ class Migrations extends Cli
             ->query("SELECT * FROM $this->table ORDER BY filename DESC")
             ->fetchAll();
         foreach ($items as $item) {
-            $out[] = $item['filename'];
+            $out[] = $item->filename;
         }
         return $out;
     }
@@ -348,7 +348,7 @@ class Migrations extends Cli
                 'sequence' => $sequence
             ])->fetchAll();
         foreach ($items as $item) {
-            $out[] = $item['filename'];
+            $out[] = $item->filename;
         }
         return $out;
     }
