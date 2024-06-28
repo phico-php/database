@@ -38,7 +38,7 @@ class Migrations extends Cli
         $name = str_replace(' ', '', str()->toCamelCase($name));
 
         // create the filename
-        $filename = sprintf("%s_%s.php", time(), str()->toCamelCase($name));
+        $filename = sprintf("%s_%s.php", time(), str()->toSnakeCase($name));
 
         // sods law
         if (file_exists(path("$this->path/$filename"))) {
