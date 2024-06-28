@@ -28,7 +28,7 @@ class Column
     public function __toString(): string
     {
         $size = isset($this->size) ? sprintf('(%d)', $this->size) : '';
-        if (in_array($this->dialect, ['pgsql', 'sqlite'])) {
+        if (in_array($this->dialect, ['sqlite'])) {
             $size = '';
         }
 
