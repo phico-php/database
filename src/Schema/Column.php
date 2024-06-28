@@ -103,22 +103,22 @@ class Column
 
     // char types
 
-    public function char(int $size): self
+    public function char(int $size = 1): self
     {
         $this->type = match ($this->dialect) {
-            'mysql', 'mariadb' => "char($size)",
-            'pgsql' => "char($size)",
+            'mysql', 'mariadb' => "char",
+            'pgsql' => "char",
             'sqlite' => 'text',
         };
         $this->size = $size;
 
         return $this;
     }
-    public function string(int $size): self
+    public function string(int $size = 255): self
     {
         return $this->varchar($size);
     }
-    public function text(int $size): self
+    public function text(int $size = 65535): self
     {
         $this->type = match ($this->dialect) {
             'mysql', 'mariadb' => 'text',
@@ -129,11 +129,11 @@ class Column
 
         return $this;
     }
-    public function varchar(int $size): self
+    public function varchar(int $size = 255): self
     {
         $this->type = match ($this->dialect) {
-            'mysql', 'mariadb' => "varchar($size)",
-            'pgsql' => "varchar($size)",
+            'mysql', 'mariadb' => "varchar",
+            'pgsql' => "varchar",
             'sqlite' => 'text',
         };
         $this->size = $size;
