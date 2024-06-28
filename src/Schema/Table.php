@@ -24,6 +24,76 @@ class Table
         }
         $this->dialect = strtolower($dialect);
     }
+    public function __call(string $name, array $args): mixed
+    {
+        $disallow = [
+            'drop',
+            'autoIncrement',
+            'comment',
+            'default',
+            'notNull',
+            'nullable',
+            'primary',
+            'useCurrent',
+        ];
+
+        if (in_array($name, $disallow)) {
+            throw new BadMethodCallException("Cannot call $name on table, call a column type first");
+        }
+
+        return $this->column($args[0])->$name($args[1] ?? null);
+    }
+    public function __toString(): string
+    {
+        if ($this->mode === 'DROP') {
+            return sprintf(
+                'DROP TABLE %s%s;',
+                ($this->exists) ? "$this->exists " : '',
+                $this->quote($this->name)
+            );
+        }
+        if ($this->mode === 'RENAME') {
+            return sprintf(
+                match ($this->dialect) {
+                    'mysql', 'mariadb' => 'RENAME TABLE %s%s TO %s;',
+                    'pgsql', 'sqlite' => 'ALTER TABLE %s%s RENAME TO %s;',
+                },
+                ($this->exists) ? "$this->exists " : '',
+                $this->quote($this->name),
+                $this->quote($this->rename)
+            );
+        }
+
+        $cons = [];
+        $cols = [];
+        foreach ($this->columns as $name => $column) {
+            // check for primary column
+            if ($column->isPrimary()) {
+                $cons[] = sprintf('PRIMARY KEY(%s)', $name);
+            }
+            $cols[] = (string) $column;
+        }
+
+        $inds = [];
+        foreach ($this->indices as $name => $index) {
+            $inds[] = (string) $index;
+        }
+
+        return sprintf(
+            "%s TABLE %s %s (\n\t%s\n\t);\n%s\n",
+            $this->mode,
+            $this->exists ?? '',
+            $this->quote($this->name),
+            join(",\n\t", $cols + $cons),
+            join(",\n\t", $inds)
+        );
+    }
+
+    public function toSql(): string
+    {
+        return $this->__toString();
+    }
+
     public function column(string $name): Column
     {
         try {
@@ -237,53 +307,6 @@ class Table
     {
         $this->constraints['without rowid'] = 'without rowid';
         return $this;
-    }
-
-
-    public function __toString(): string
-    {
-        if ($this->mode === 'DROP') {
-            return sprintf(
-                'DROP TABLE %s%s;',
-                ($this->exists) ? "$this->exists " : '',
-                $this->quote($this->name)
-            );
-        }
-        if ($this->mode === 'RENAME') {
-            return sprintf(
-                match ($this->dialect) {
-                    'mysql', 'mariadb' => 'RENAME TABLE %s%s TO %s;',
-                    'pgsql', 'sqlite' => 'ALTER TABLE %s%s RENAME TO %s;',
-                },
-                ($this->exists) ? "$this->exists " : '',
-                $this->quote($this->name),
-                $this->quote($this->rename)
-            );
-        }
-
-        $cons = [];
-        $cols = [];
-        foreach ($this->columns as $name => $column) {
-            // check for primary column
-            if ($column->isPrimary()) {
-                $cons[] = sprintf('PRIMARY KEY(%s)', $name);
-            }
-            $cols[] = (string) $column;
-        }
-
-        $inds = [];
-        foreach ($this->indices as $name => $index) {
-            $inds[] = (string) $index;
-        }
-
-        return sprintf(
-            "%s TABLE %s %s (\n\t%s\n\t);\n%s\n",
-            $this->mode,
-            $this->exists ?? '',
-            $this->quote($this->name),
-            join(",\n\t", $cols + $cons),
-            join(",\n\t", $inds)
-        );
     }
 
     // private function generateIndexName(array $columns): string
