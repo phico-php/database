@@ -43,7 +43,7 @@ class Column
     private function constraints(): string
     {
         // set order
-        $order = ['unsigned', 'not null', 'nullable', 'default', 'auto_increment', 'primary', 'comment'];
+        $order = ['unsigned', 'not null', 'nullable', 'default', 'primary', 'auto_increment', 'comment'];
 
         $out = [];
         foreach ($order as $c) {
@@ -323,9 +323,19 @@ class Column
 
     public function autoIncrement(): self
     {
-        $this->constraints['auto_increment'] = 'auto_increment';
         $this->constraints['not null'] = 'not null';
-        $this->constraints['unsigned'] = 'unsigned';
+        $this->constraints['auto_increment'] = match ($this->dialect) {
+            'mysql', 'mariadb' => 'auto_increment',
+            'psql' => 'serial',
+            'sqlite' => 'autoincrement'
+        };
+
+        $this->constraints['unsigned'] = match ($this->dialect) {
+            'mysql', 'mariadb' => 'unsigned',
+            'psql' => '',
+            'sqlite' => ''
+        };
+
         return $this;
     }
     public function comment(string $str): self
