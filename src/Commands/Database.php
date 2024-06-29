@@ -22,8 +22,8 @@ class Database extends Cli
             die("This script can only be run from the command line.");
         }
 
-        $use = config('database.use');
-        $config = config("database.connections.$use");
+        $use = config()->get('database.use');
+        $config = config()->get("database.connections.$use");
 
         $cmd = match ($config['driver']) {
 

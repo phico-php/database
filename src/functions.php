@@ -7,10 +7,10 @@ if (!function_exists('db')) {
     function db(string $conn = null): \Phico\Database\DB
     {
         // fetch default connection name if not provided
-        $conn = (is_null($conn)) ? config("database.use") : $conn;
+        $conn = (is_null($conn)) ? config()->get("database.use") : $conn;
 
         // fetch connection details
-        $config = config("database.connections.$conn");
+        $config = config()->get("database.connections.$conn");
 
         // create dsn
         $dsn = ($config['driver'] === 'sqlite')

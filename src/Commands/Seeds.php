@@ -18,8 +18,8 @@ class Seeds extends Cli
 
     public function __construct()
     {
-        $this->path = config('database.seeds.path', 'resources/seeds');
-        $this->db = db(config('database.seeds.connection', 'default'));
+        $this->path = config()->get('database.seeds.path', 'resources/seeds');
+        $this->db = db(config()->get('database.seeds.connection', 'default'));
     }
 
     public function create(Args $args)

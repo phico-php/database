@@ -19,9 +19,9 @@ class Migrations extends Cli
 
     public function __construct()
     {
-        $this->table = config('database.migrations.table', '_migrations');
-        $this->path = config('database.migrations.path', 'resources/migrations');
-        $this->db = db(config('database.migrations.connection', 'default'));
+        $this->table = config()->get('database.migrations.table', '_migrations');
+        $this->path = config()->get('database.migrations.path', 'resources/migrations');
+        $this->db = db(config()->get('database.migrations.connection', 'default'));
     }
     public function create(Args $args): void
     {
