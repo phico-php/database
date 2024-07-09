@@ -88,7 +88,9 @@ class DB
 
         } catch (PDOException $e) {
 
-            $stmt->closeCursor();
+            if (isset($stmt)) {
+                $stmt->closeCursor();
+            }
 
             $e = new DatabaseException(
                 $e->getMessage(),
