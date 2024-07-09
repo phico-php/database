@@ -259,7 +259,7 @@ class Table
 
 
     // auto columns
-    public function softDeletes(): self
+    public function softDelete(): self
     {
         $this->columns['deleted_at'] = (new Column($this->dialect, 'deleted_at'))
             ->timestamp()
