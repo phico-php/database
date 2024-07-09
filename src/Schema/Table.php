@@ -264,6 +264,9 @@ class Table
         $this->columns['deleted_at'] = (new Column($this->dialect, 'deleted_at'))
             ->timestamp()
             ->nullable();
+        $this->columns['deleted_by'] = (new Column($this->dialect, 'deleted_by'))
+            ->integer()
+            ->nullable();
 
         return $this;
     }
@@ -276,6 +279,16 @@ class Table
             ->timestamp()
             ->nullable();
 
+        return $this;
+    }
+    public function userstamps(): self
+    {
+        $this->columns['created_by'] = (new Column($this->dialect, 'created_by'))
+            ->integer()
+            ->nullable();
+        $this->columns['updated_by'] = (new Column($this->dialect, 'updated_by'))
+            ->integer()
+            ->nullable();
 
         return $this;
     }
