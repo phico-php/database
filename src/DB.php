@@ -77,7 +77,7 @@ class DB
      * @return PDOStatement
      * @throws DatabaseException
      */
-    public function query(string $sql, ?array $params = []): PDOStatement
+    public function execute(string $sql, ?array $params = []): PDOStatement
     {
         try {
 
