@@ -145,7 +145,7 @@ class Migrations extends Cli
 
             // fetch next sequence number
             $sequence = $this->db
-                ->query("SELECT max(sequence) + 1 FROM $this->table")
+                ->execute("SELECT max(sequence) + 1 FROM $this->table")
                 ->fetchColumn(0);
             if (!$sequence) {
                 $sequence = 1;
@@ -231,7 +231,7 @@ class Migrations extends Cli
 
             // fetch the most recent sequence number
             $sequence = $this->db
-                ->query("SELECT max(sequence) FROM $this->table")
+                ->execute("SELECT max(sequence) FROM $this->table")
                 ->fetchColumn(0);
             if (is_null($sequence)) {
                 $this->info("No migrations to undo\n");
@@ -328,7 +328,7 @@ class Migrations extends Cli
     {
         $out = [];
         $items = $this->db
-            ->query("SELECT * FROM $this->table ORDER BY filename DESC")
+            ->execute("SELECT * FROM $this->table ORDER BY filename DESC")
             ->fetchAll();
         foreach ($items as $item) {
             $out[] = $item->filename;
@@ -344,7 +344,7 @@ class Migrations extends Cli
     {
         $out = [];
         $items = $this->db
-            ->query("SELECT * FROM $this->table WHERE sequence=:sequence ORDER BY filename DESC", [
+            ->execute("SELECT * FROM $this->table WHERE sequence=:sequence ORDER BY filename DESC", [
                 'sequence' => $sequence
             ])->fetchAll();
         foreach ($items as $item) {
