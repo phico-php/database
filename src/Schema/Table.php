@@ -85,7 +85,7 @@ class Table
             $this->exists ?? '',
             $this->quote($this->name),
             join(",\n\t", $cols + $cons),
-            join(",\n\t", $inds)
+            join("\n", $inds)
         );
     }
 
