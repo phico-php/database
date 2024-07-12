@@ -170,7 +170,7 @@ class Migrations extends Cli
                 $migration->up();
 
                 // save successful migration in db
-                $this->db->query("INSERT INTO $this->table (sequence, filename, timestamp, version) VALUES (:sequence, :filename, :timestamp, :version)", [
+                $this->db->execute("INSERT INTO $this->table (sequence, filename, timestamp, version) VALUES (:sequence, :filename, :timestamp, :version)", [
                     'sequence' => $sequence,
                     'filename' => $filename,
                     'timestamp' => time(),
@@ -250,7 +250,7 @@ class Migrations extends Cli
                 $migration->down();
 
                 // remove migration from db
-                $this->db->query("DELETE FROM $this->table WHERE filename=:filename", [
+                $this->db->execute("DELETE FROM $this->table WHERE filename=:filename", [
                     'filename' => $filename,
                 ]);
 
@@ -309,7 +309,7 @@ class Migrations extends Cli
             'mysql', 'mariadb' => "SELECT COUNT(*) FROM information_schema.tables WHERE table_schema = '$db_name'  AND table_name = '$table';"
         };
 
-        $stmt = $this->db->query($sql);
+        $stmt = $this->db->execute($sql);
         // @TODO check this on mysql, (sqlite & pgsql ok)
         return (bool) $stmt->fetchColumn();
     }
