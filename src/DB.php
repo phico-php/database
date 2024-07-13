@@ -7,6 +7,7 @@ namespace Phico\Database;
 use PDO;
 use PDOException;
 use PDOStatement;
+use Phico\Query\Query;
 use Throwable;
 
 
