@@ -15,6 +15,7 @@ class DB
     protected PDO $conn;
     public readonly string $driver;
     protected int $tx_level;
+    protected array $attributes;
 
 
     /**
@@ -24,8 +25,16 @@ class DB
     public function __construct(PDO $conn)
     {
         $this->conn = $conn;
-        $this->driver = $conn->getAttribute(PDO::ATTR_DRIVER_NAME);
+        $this->driver = $this->conn->getAttribute(PDO::ATTR_DRIVER_NAME);
         $this->tx_level = 0;
+    }
+    public function getAttribute(int $constant): mixed
+    {
+        try {
+            return $this->conn->getAttribute($constant);
+        } catch (Throwable $th) {
+            return $th->getMessage();
+        }
     }
     /**
      * Returns the PDO connection attributes
@@ -33,7 +42,11 @@ class DB
      */
     public function getAttributes(): array
     {
-        $out = [];
+        if (is_array($this->attributes) && !empty($this->attributes)) {
+            return $this->attributes;
+        }
+
+        $$this->attributes = [];
         $attrs = [
             "AUTOCOMMIT",
             "CASE",
@@ -53,13 +66,13 @@ class DB
         ];
         foreach ($attrs as $attr) {
             try {
-                $out[$attr] = $this->conn->getAttribute(constant("PDO::ATTR_$attr"));
-            } catch (Throwable $e) {
-                $out[$attr] = $e->getMessage();
+                $this->attributes[$attr] = $this->conn->getAttribute(constant("PDO::ATTR_$attr"));
+            } catch (Throwable $th) {
+                $this->attributes[$attr] = $th->getMessage();
             }
         }
 
-        return $out;
+        return $this->attributes;
     }
     /**
      * Returns the last insert id from the internal PDOStatement pointer
