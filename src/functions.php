@@ -1,6 +1,7 @@
 <?php
 
 declare(strict_types=1);
+use Phico\Database\DatabaseException;
 
 if (!function_exists('db')) {
     // db requires the name of the connection to use
@@ -23,7 +24,7 @@ if (!function_exists('db')) {
             return new \Phico\Database\DB($pdo);
         } catch (PDOException $e) {
             logger()->error(sprintf('Failed to connect to the database, %s in %s line %d', $e->getMessage(), $e->getFile(), $e->getLine()));
-            throw $e;
+            throw new DatabaseException('Failed to connect to database %s', 1005, null, [], [], $e);
         }
     }
 }
