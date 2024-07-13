@@ -123,6 +123,41 @@ class DB
         }
     }
     /**
+     * Returns a single row as an object, or null if no rows found
+     * @param \Phico\Query\Query $query The query to execute
+     * @return null|object
+     */
+    public function fetchOne(Query $query): ?object
+    {
+        $query->limit(1);
+        $stmt = $this->execute($query->toSql($this->driver), $query->getParams());
+        $row = $stmt->fetch();
+
+        return (false === $row) ? null : $row;
+    }
+    /**
+     * Returns an array of matching rows, or an empty array if no rows found
+     * @param \Phico\Query\Query $query The query to execute
+     * @return array
+     */
+    public function fetchMany(Query $query): array
+    {
+        $stmt = $this->execute($query->toSql($this->driver), $query->getParams());
+        $rows = $stmt->fetchAll();
+
+        return (false === $rows) ? [] : $rows;
+    }
+    /**
+     * Prepares and executes a Query instance safely
+     * @param Query $query The Query instance
+     * @return PDOStatement
+     * @throws DatabaseException
+     */
+    public function query(Query $query): PDOStatement
+    {
+        return $this->execute($query->toSql($this->driver), $query->getParams());
+    }
+    /**
      * Executes a raw SQL query using unsafe input and can execute multiple queries
      * @param string $sql The parameterised SQL query
      * @return int The number of affected rows
