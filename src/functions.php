@@ -15,7 +15,7 @@ if (!function_exists('db')) {
 
         // create dsn
         $dsn = ($config['driver'] === 'sqlite')
-            ? sprintf('%s:%s', $config['driver'], $config['database'])
+            ? sprintf('%s:%s', $config['driver'], path($config['database']))
             : sprintf('%s:host=%s;port=%s;dbname=%s', $config['driver'], $config['host'], $config['port'], $config['database']);
 
         // try to create PDO connection using config details
