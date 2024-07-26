@@ -95,7 +95,7 @@ class DB
     {
         try {
 
-            $stmt = $this->prepareStatement($sql);
+            $stmt = $this->conn->prepare($sql);
             $stmt->execute($params);
 
             return $stmt;
@@ -224,13 +224,4 @@ class DB
         $this->tx_level--;
     }
 
-    /**
-     * Prepares a PDOStatement.
-     * @param string $sql
-     * @return PDOStatement
-     */
-    private function prepareStatement(string $sql): PDOStatement
-    {
-        return $this->conn->prepare($sql);
-    }
 }
