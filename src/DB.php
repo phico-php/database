@@ -80,7 +80,7 @@ class DB
      * @param string $seq The PgSQL sequence name
      * @return string
      */
-    public function lastInsertId(string $seq = null): string
+    public function getInsertId(string $seq = null): string
     {
         return $this->conn->lastInsertId($seq);
     }
