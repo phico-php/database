@@ -43,11 +43,11 @@ class DB
      */
     public function getAttributes(): array
     {
-        if (is_array($this->attributes) && !empty($this->attributes)) {
+        if (isset($this->attributes) and !empty($this->attributes)) {
             return $this->attributes;
         }
 
-        $$this->attributes = [];
+        $this->attributes = [];
         $attrs = [
             "AUTOCOMMIT",
             "CASE",
@@ -114,6 +114,7 @@ class DB
                 [
                     'errorCode' => $this->conn->errorCode(),
                     'errorInfo' => $this->conn->errorInfo(),
+                    // 'attributes' => $this->getAttributes(),
                 ],
                 $e
             );
