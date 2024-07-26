@@ -133,7 +133,7 @@ class DB
     {
         $query->limit(1);
         $stmt = $this->execute($query->toSql($this->driver), $query->getParams());
-        $row = $stmt->fetch();
+        $row = $stmt->fetch(PDO::FETCH_OBJ);
 
         return (false === $row) ? null : $row;
     }
@@ -145,7 +145,7 @@ class DB
     public function fetchMany(Query $query): array
     {
         $stmt = $this->execute($query->toSql($this->driver), $query->getParams());
-        $rows = $stmt->fetchAll();
+        $rows = $stmt->fetchAll(PDO::FETCH_OBJ);
 
         return (false === $rows) ? [] : $rows;
     }
