@@ -20,7 +20,7 @@ if (!function_exists('db')) {
 
         // try to create PDO connection using config details
         try {
-            $pdo = new PDO($dsn, $config['username'], $config['password'], $config['options'] ?? []);
+            $pdo = new PDO($dsn, $config['username'] ?? '', $config['password'] ?? '', $config['options'] ?? []);
             return new \Phico\Database\DB($pdo);
         } catch (PDOException $e) {
             logger()->error(sprintf('Failed to connect to the database, %s in %s line %d', $e->getMessage(), $e->getFile(), $e->getLine()));
