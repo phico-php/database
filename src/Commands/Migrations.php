@@ -21,11 +21,10 @@ class Migrations extends Cli
     {
         $this->table = config()->get('database.migrations.table', '_migrations');
         $this->path = config()->get('database.migrations.path', 'resources/migrations');
-        $this->db = db(config()->get('database.migrations.connection', 'default'));
+        $this->db = db(config()->get('database.use', 'default'));
     }
     public function create(Args $args): void
     {
-
         $this->requireMigrationsTable();
 
         $name = $args->index(0) ?? $args->value('name');
