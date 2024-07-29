@@ -329,7 +329,7 @@ class Migrations extends Cli
         $out = [];
         $items = $this->db
             ->execute("SELECT * FROM $this->table ORDER BY filename DESC")
-            ->fetchAll();
+            ->fetchAll(\PDO::FETCH_OBJ);
         foreach ($items as $item) {
             $out[] = $item->filename;
         }
@@ -346,7 +346,7 @@ class Migrations extends Cli
         $items = $this->db
             ->execute("SELECT * FROM $this->table WHERE sequence=:sequence ORDER BY filename DESC", [
                 'sequence' => $sequence
-            ])->fetchAll();
+            ])->fetchAll(\PDO::FETCH_OBJ);
         foreach ($items as $item) {
             $out[] = $item->filename;
         }
