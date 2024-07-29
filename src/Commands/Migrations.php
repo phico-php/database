@@ -311,7 +311,7 @@ class Migrations extends Cli
 
         $stmt = $this->db->execute($sql);
         // @TODO check this on mysql, (sqlite & pgsql ok)
-        return (bool) $stmt->fetchColumn();
+        return $stmt->fetchColumn(0) === $table;
     }
     private function getMigrationFiles(): array
     {
