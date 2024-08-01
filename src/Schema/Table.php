@@ -185,6 +185,11 @@ class Table
 
         }
     }
+    public function unique(array|string $columns, string $name = null): Index
+    {
+        return $this->index($columns, $name)->unique();
+    }
+
     public function alter(string $name): self
     {
         $this->mode = 'ALTER';
@@ -241,22 +246,6 @@ class Table
 
         return $this;
     }
-
-
-    // public function index(array|string $index): self
-    // {
-    //     if (is_array($index)) {
-    //         $index = join(', ', $index);
-    //     }
-    //     $this->indices[] = $index;
-    //     return $this;
-    // }
-    public function unique(array|string $index): self
-    {
-
-        return $this;
-    }
-
 
     // auto columns
     public function softDelete(): self
