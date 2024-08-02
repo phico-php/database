@@ -53,7 +53,7 @@ class Migrations extends Cli
     {
 
         if ($this->tableExists($this->table)) {
-            $this->write("The migrations table has already been created");
+            $this->info("The migrations table '$this->table' has already been created");
             return;
         }
 
@@ -107,7 +107,7 @@ class Migrations extends Cli
         $this->db->raw("DROP TABLE IF EXISTS $this->table;");
         $this->write('done');
 
-        $this->success("Dropped the migrations table successfully, run 'pico db migrations init' to create it again");
+        $this->success("Dropped the migrations table successfully, run 'phico database migrations init' to create it again");
     }
     public function todo(Args $args): void
     {
@@ -128,6 +128,8 @@ class Migrations extends Cli
         foreach ($migrations as $filename) {
             $this->write(sprintf("%d. %s", ++$i, $filename));
         }
+
+        $this->write("\n");
 
         if ($args->has('t')) {
             $this->success(sprintf("Time: %2fs", microtime(true) - $ts));
@@ -181,6 +183,8 @@ class Migrations extends Cli
 
             $this->db->finishTransaction();
 
+            $this->write("\n");
+
             if ($args->has('t')) {
                 $this->success(sprintf("Time: %2fs", microtime(true) - $ts));
             }
@@ -210,8 +214,10 @@ class Migrations extends Cli
 
         $i = 0;
         foreach ($migrations as $filename) {
-            $this->write(sprintf("%d. %s\n", ++$i, $filename));
+            $this->write(sprintf("%d. %s", ++$i, $filename));
         }
+
+        $this->write("\n");
 
         if ($args->has('t')) {
             $this->success(sprintf("Time: %2fs", microtime(true) - $ts));
@@ -257,6 +263,8 @@ class Migrations extends Cli
             }
 
             $this->db->finishTransaction();
+
+            $this->write("\n");
 
             if ($args->has('t')) {
                 $this->success(sprintf("Time: %2fs", microtime(true) - $ts));
