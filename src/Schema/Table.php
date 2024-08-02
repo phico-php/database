@@ -122,7 +122,9 @@ class Table
         } finally {
 
             // not the best practise, but a great feature in this case ;)
-            $this->columns[$name] = $column;
+            if (isset($column)) { // column might not be set on error
+                $this->columns[$name] = $column;
+            }
 
         }
 
