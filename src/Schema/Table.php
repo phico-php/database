@@ -63,6 +63,12 @@ class Table
                 $this->quote($this->rename)
             );
         }
+        if ($this->mode === 'TRUNCATE') {
+            return match ($this->dialect) {
+                'mysql', 'pgsql' => sprintf('TRUNCATE TABLE %s;', $this->quote($this->name)),
+                'sqlite' => sprintf('DELETE FROM %s;', $this->quote($this->name)),
+            };
+        }
 
         $cons = [];
         $cols = [];
@@ -194,12 +200,30 @@ class Table
     {
         $this->mode = 'ALTER';
         $this->name = $name;
+        $this->exists = $this->exists ?? '';
         return $this;
     }
     public function create(string $name): self
     {
         $this->mode = 'CREATE';
         $this->name = $name;
+        $this->exists = $this->exists ?? '';
+        return $this;
+    }
+    public function drop(string $name): self
+    {
+        $this->mode = 'DROP';
+        $this->name = $name;
+        $this->exists = $this->exists ?? '';
+
+        return $this;
+    }
+    public function dropIfExists(string $name): self
+    {
+        $this->mode = 'DROP';
+        $this->name = $name;
+        $this->exists = 'IF EXISTS';
+
         return $this;
     }
     public function ifExists(): self
@@ -217,7 +241,7 @@ class Table
         $this->mode = 'RENAME';
         $this->name = $old;
         $this->rename = $new;
-        $this->exists = '';
+        $this->exists = $this->exists ?? '';
 
         return $this;
     }
@@ -230,20 +254,10 @@ class Table
 
         return $this;
     }
-    public function drop(string $name): self
+    public function truncate(string $name): self
     {
-        $this->mode = 'DROP';
+        $this->mode = 'TRUNCATE';
         $this->name = $name;
-        $this->exists = '';
-
-        return $this;
-    }
-    public function dropIfExists(string $name): self
-    {
-        $this->mode = 'DROP';
-        $this->name = $name;
-        $this->exists = 'IF EXISTS';
-
         return $this;
     }
 
