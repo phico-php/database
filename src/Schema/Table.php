@@ -41,7 +41,9 @@ class Table
             throw new BadMethodCallException("Cannot call $name on table, call a column type first");
         }
 
-        return $this->column($args[0])->$name($args[1] ?? null);
+        $type = array_shift($args);
+        return $this->column($type)->$name(...$args);
+
     }
     public function __toString(): string
     {
@@ -68,6 +70,33 @@ class Table
                 'mysql', 'pgsql' => sprintf('TRUNCATE TABLE %s;', $this->quote($this->name)),
                 'sqlite' => sprintf('DELETE FROM %s;', $this->quote($this->name)),
             };
+        }
+        if ($this->mode === 'ALTER') {
+            $out = [];
+            switch ($this->dialect) {
+                case 'sqlite':
+                    foreach ($this->columns as $name => $column) {
+                        $out[] = match ($column->mode()) {
+                            'alter' => throw new \LogicException('Altering columns in SQLite is not supported'),
+                            'drop' => sprintf('ALTER TABLE %s DROP COLUMN %s', $this->quote($this->name), $column),
+                            'rename' => sprintf('ALTER TABLE %s RENAME COLUMN %s', $this->quote($this->name), $column),
+                            default => sprintf('ALTER TABLE %s ADD COLUMN %s', $this->quote($this->name), $column),
+                        };
+                    }
+                    return join(";\n", $out);
+
+                case 'mysql':
+                case 'pgsql':
+                    foreach ($this->columns as $name => $column) {
+                        $out[] = match ($column->mode()) {
+                            'alter' => sprintf('%s COLUMN %s', ($this->dialect == 'mysql') ? 'MODIFY' : 'ALTER', (string) $column),
+                            'drop' => sprintf('DROP COLUMN %s', (string) $column),
+                            'rename' => sprintf('RENAME COLUMN %s', $column),
+                            default => (string) $column,
+                        };
+                    }
+                    return sprintf('ALTER TABLE %s\n%s;', $this->quote($this->name), join(",\n", $out));
+            }
         }
 
         $cons = [];

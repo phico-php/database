@@ -8,8 +8,9 @@ class Column
     private string $dialect;
     private string $name;
     private string $type;
+    private string $mode;
+    private string $rename;
     private int $size;
-    private bool $drop;
     private array $constraints = [];
 
 
@@ -19,7 +20,12 @@ class Column
         $this->name = $name;
 
         // set defaults
+        $this->mode = 'create';
         $this->constraints['not null'] = 'not null';
+    }
+    public function mode(): string
+    {
+        return $this->mode;
     }
     public function isPrimary(): bool
     {
@@ -27,9 +33,39 @@ class Column
     }
     public function __toString(): string
     {
+        if ($this->mode === 'drop') {
+            return sprintf('%s', $this->quote($this->name));
+        }
+        if ($this->mode === 'rename') {
+            return sprintf('%s TO %s', $this->quote($this->name), $this->quote($this->rename));
+        }
+
         $size = isset($this->size) ? sprintf('(%d)', $this->size) : '';
         if (in_array($this->dialect, ['sqlite'])) {
             $size = '';
+        }
+
+        if ($this->mode === 'alter') {
+
+            return match ($this->dialect) {
+                // @TODO fix this SET / DROP constraints, change TYPE must be a separate statement
+                'pgsql' => sprintf(
+                    "%s TYPE %s%s %s,\nALTER COLUMN %s SET %s",
+                    $this->quote($this->name),
+                    $this->type,
+                    $size,
+                    $this->constraints(),
+                    $this->quote($this->name),
+                    $this->constraints(),
+                ),
+                'mysql' => sprintf(
+                    '%s %s%s %s',
+                    $this->quote($this->name),
+                    $this->type,
+                    $size,
+                    $this->constraints()
+                ),
+            };
         }
 
         return sprintf(
@@ -60,11 +96,26 @@ class Column
         };
     }
 
-    // actions
+    // modes
 
+    public function alter(): self
+    {
+        $this->mode = 'alter';
+        return $this;
+    }
+    public function change(): self
+    {
+        return $this->alter();
+    }
     public function drop(): self
     {
-        $this->drop = true;
+        $this->mode = 'drop';
+        return $this;
+    }
+    public function rename(string $name): self
+    {
+        $this->mode = 'rename';
+        $this->rename = $name;
         return $this;
     }
 
