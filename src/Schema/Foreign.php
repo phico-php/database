@@ -24,7 +24,7 @@ class Index
         $this->mode = 'create';
         $this->dialect = $dialect;
         $this->table = $table;
-        $this->name = $name ?? $this->makeName();
+        $this->name = $name ?? $this->makeName($columns);
         $this->columns = $columns;
         $this->drop = false;
         $this->unique = false;
@@ -56,8 +56,8 @@ class Index
             case 'drop':
                 return $this->makeDropSyntax();
 
-            case 'rename':
-                return $this->makeRenameSyntax();
+            // case 'rename':
+            //     return $this->makeRenameSyntax();
 
             case 'create':
             default:
@@ -75,7 +75,7 @@ class Index
             join(', ', $this->columns)
         );
 
-        sprintf('ALTER TABLE %s ADD CONSTRAINT %s FOREIGN KEY (%s) REFERENCES %s (%s);', $this->table, $this->name, $columns, $referencedTable, $referencedColumns);
+        // sprintf('ALTER TABLE %s ADD CONSTRAINT %s FOREIGN KEY (%s) REFERENCES %s (%s);', $this->table, $this->name, $columns, $referencedTable, $referencedColumns);
 
 
         return $out;

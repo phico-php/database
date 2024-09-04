@@ -23,7 +23,6 @@ if (!function_exists('db')) {
             $pdo = new PDO($dsn, $config['username'] ?? '', $config['password'] ?? '', $config['options'] ?? []);
             return new \Phico\Database\DB($pdo);
         } catch (PDOException $e) {
-            logger()->error(sprintf('Failed to connect to the database, %s in %s line %d', $e->getMessage(), $e->getFile(), $e->getLine()));
             throw new DatabaseException('Failed to connect to database %s', 1005, null, [], [], $e);
         }
     }

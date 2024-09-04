@@ -186,6 +186,7 @@ class Table
         } finally {
 
             // not the best practise, but a great feature in this case ;)
+            // @phpstan-ignore variable.undefined
             $this->indices[$name] = $index;
 
         }
@@ -218,6 +219,7 @@ class Table
         } finally {
 
             // not the best practise, but a great feature in this case ;)
+            // @phpstan-ignore variable.undefined
             $this->indices[$name] = $index;
 
         }

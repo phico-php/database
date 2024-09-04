@@ -3,6 +3,7 @@
   "description": "Lightweight database support for Phico",
   "type": "library",
   "license": "BSD-3-Clause",
+  "minimum-stability": "dev",
   "autoload": {
     "psr-4": {
       "Phico\\Database\\": "src/"
@@ -17,7 +18,6 @@
       "email": "me@indgy.uk"
     }
   ],
-  "minimum-stability": "stable",
   "config": {
     "allow-plugins": {
       "phpstan/extension-installer": true,
@@ -28,10 +28,14 @@
     "php": "^8.0",
     "ext-pdo": "*",
     "phico/cli": "dev-main",
+    "phico/config": "dev-main",
     "phico/filesystem": "dev-main"
   },
   "require-dev": {
     "phpstan/phpstan": "*",
     "pestphp/pest": "^2.34"
+  },
+  "scripts": {
+    "analyse": "vendor/bin/phpstan analyse src/"
   }
 }

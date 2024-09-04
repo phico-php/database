@@ -93,7 +93,7 @@ class Seeds extends Cli
                 $this->success(sprintf("Time: %2fs", microtime(true) - $ts));
             }
 
-        } catch (\Throwable $e) {
+        } catch (\Throwable $th) {
 
             $this->db->cancelTransaction();
 
