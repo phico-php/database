@@ -13,7 +13,6 @@ use Throwable;
 class DB
 {
     protected PDO $conn;
-    public readonly string $driver;
     protected int $tx_level;
     protected array $attributes;
 
@@ -25,10 +24,14 @@ class DB
     public function __construct(PDO $conn)
     {
         $this->conn = $conn;
-        $this->driver = $this->conn->getAttribute(PDO::ATTR_DRIVER_NAME);
         $this->tx_level = 0;
     }
-    public function getAttribute(int $constant): mixed
+    /**
+     * Returns the specified attribute value
+     * @param int $constant The PDO constant for the attribute
+     * @return mixed
+     */
+    public function attr(int $constant): mixed
     {
         try {
             return $this->conn->getAttribute($constant);
@@ -37,10 +40,10 @@ class DB
         }
     }
     /**
-     * Returns the PDO connection attributes
+     * Returns all the PDO connection attributes
      * @return array
      */
-    public function getAttributes(): array
+    public function attrs(): array
     {
         if (isset($this->attributes) and !empty($this->attributes)) {
             return $this->attributes;
@@ -76,7 +79,7 @@ class DB
     }
     /**
      * Returns the last insert id from the internal PDOStatement pointer
-     * @param string $seq The PgSQL sequence name
+     * @param string $seq The sequence name, required by Postgres
      * @return string
      */
     public function getInsertId(string $seq = null): string
@@ -155,10 +158,10 @@ class DB
         }
     }
     /**
-     * Start a new transaction
+     * Begin a new transaction
      * @return void
      */
-    public function startTransaction(): void
+    public function begin(): void
     {
         $this->tx_level++;
         if ($this->tx_level == 1) {
@@ -169,7 +172,7 @@ class DB
      * Commit the current transaction
      * @return void
      */
-    public function finishTransaction(): void
+    public function commit(): void
     {
         if ($this->tx_level == 1) {
             $this->conn->commit();
@@ -177,10 +180,10 @@ class DB
         $this->tx_level--;
     }
     /**
-     * Cancel the current transaction
+     * Rollback the current transaction
      * @return void
      */
-    public function cancelTransaction(): void
+    public function rollback(): void
     {
         if ($this->tx_level == 1) {
             $this->conn->rollback();
