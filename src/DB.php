@@ -4,6 +4,7 @@ declare(strict_types=1);
 
 namespace Phico\Database;
 
+use BadMethodCallException;
 use PDO;
 use PDOException;
 use PDOStatement;
@@ -191,4 +192,30 @@ class DB
         $this->tx_level--;
     }
 
+    /**
+     * Create a savepoint to rollback to
+     * @param string $name The name of the savepoint to create
+     * @return self
+     */
+    public function savepoint(string $name): void
+    {
+        if ($this->tx_level === 0) {
+            throw new BadMethodCallException(sprintf('Cannot use savepoints outside transactions, please start a transaction before calling savepoint %s', $name));
+        }
+
+        $this->conn->exec("SAVEPOINT $name");
+    }
+    /**
+     * Rollback to a named savepoint
+     * @param string $name The name of the savepoint to rollback to
+     * @return self
+     */
+    public function rollbackTo(string $name): void
+    {
+        if ($this->tx_level === 0) {
+            throw new BadMethodCallException(sprintf('Cannot use savepoints outside transactions, please start a transaction before calling rollback to %s', $name));
+        }
+
+        $this->conn->exec("ROLLBACK TO SAVEPOINT $name");
+    }
 }
