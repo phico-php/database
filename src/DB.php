@@ -158,7 +158,7 @@ class DB
         }
     }
     /**
-     * Begin a new transaction
+     * Begin a new transaction (nested transactions are ignored)
      * @return void
      */
     public function begin(): void
@@ -169,7 +169,7 @@ class DB
         }
     }
     /**
-     * Commit the current transaction
+     * Commit the active transaction (nested transactions are ignored)
      * @return void
      */
     public function commit(): void
@@ -180,7 +180,7 @@ class DB
         $this->tx_level--;
     }
     /**
-     * Rollback the current transaction
+     * Rollback the active transaction (nested transactions are ignored)
      * @return void
      */
     public function rollback(): void

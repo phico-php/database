@@ -159,7 +159,7 @@ class Migrations extends Cli
                 die("No migrations to do\n");
             }
 
-            $this->db->startTransaction();
+            $this->db->begin();
 
             $i = 0;
             foreach ($migrations as $filename) {
@@ -181,7 +181,7 @@ class Migrations extends Cli
                 $this->write("done");
             }
 
-            $this->db->finishTransaction();
+            $this->db->commit();
 
             $this->write("\n");
 
@@ -191,7 +191,7 @@ class Migrations extends Cli
 
         } catch (\Throwable $th) {
 
-            $this->db->cancelTransaction();
+            $this->db->rollback();
 
             throw $th;
 
@@ -243,7 +243,7 @@ class Migrations extends Cli
                 return;
             }
 
-            $this->db->startTransaction();
+            $this->db->begin();
 
             $i = 0;
             foreach ($this->getMigrationsInSequence($sequence) as $filename) {
@@ -262,7 +262,7 @@ class Migrations extends Cli
                 $this->write("reverted");
             }
 
-            $this->db->finishTransaction();
+            $this->db->commit();
 
             $this->write("\n");
 
@@ -272,7 +272,7 @@ class Migrations extends Cli
 
         } catch (\Throwable $th) {
 
-            $this->db->cancelTransaction();
+            $this->db->rollback();
 
             throw $th;
 

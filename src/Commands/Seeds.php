@@ -79,13 +79,13 @@ class Seeds extends Cli
 
             $ts = microtime(true);
 
-            $this->db->startTransaction();
+            $this->db->begin();
 
             // get class instance and call run()
             $seed = $this->instantiate($filename);
             $seed->seed();
 
-            $this->db->finishTransaction();
+            $this->db->commit();
 
             $this->write("done");
 
@@ -95,7 +95,7 @@ class Seeds extends Cli
 
         } catch (\Throwable $th) {
 
-            $this->db->cancelTransaction();
+            $this->db->rollback();
 
             throw $th;
 
