@@ -33,7 +33,9 @@
   },
   "require-dev": {
     "phpstan/phpstan": "*",
-    "pestphp/pest": "^2.34"
+    "pestphp/pest": "^2.34",
+    "friendsofphp/php-cs-fixer": "dev-master",
+    "mockery/mockery": "2.0.x-dev"
   },
   "scripts": {
     "analyse": "vendor/bin/phpstan analyse src/"
