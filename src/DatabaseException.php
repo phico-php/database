@@ -4,11 +4,11 @@ declare(strict_types=1);
 
 namespace Phico\Database;
 
+use Exception;
 use Throwable;
-use Phico\PhicoException;
 
 
-class DatabaseException extends PhicoException
+class DatabaseException extends Exception
 {
     protected string $sql;
     protected array $params;
