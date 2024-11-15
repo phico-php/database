@@ -23,7 +23,7 @@ class Index
         $this->mode = 'create';
         $this->driver = $driver;
         $this->table = $table;
-        $this->name = $name ?? $this->generateIndexName($columns);
+        $this->name = $name ?? $this->setIndexName($columns);
         $this->columns = $columns;
         $this->drop = false;
         $this->unique = false;
@@ -70,15 +70,15 @@ class Index
         }
     }
 
-    private function generateIndexName(array $columns): string
+    private function setIndexName(array $columns): string
     {
-        return $this->table . '_' . implode('_', $columns) . '_idx';
+        return $this->table . '_' . implode('_', $columns) . '_index';
     }
 
     private function generateDropIndexQuery(): string
     {
         return match ($this->driver) {
-            'mysql', 'mariadb' => sprintf('DROP INDEX %s ON %s;', $this->name, $this->table),
+            'mysql' => sprintf('DROP INDEX %s ON %s;', $this->name, $this->table),
             'pgsql', 'sqlite' => sprintf('DROP INDEX %s;', $this->name),
             default => throw new \Exception('Unsupported driver: ' . $this->driver),
         };
@@ -87,7 +87,7 @@ class Index
     private function generateRenameIndexQuery(): string
     {
         return match ($this->driver) {
-            'mysql', 'mariadb' => sprintf('ALTER TABLE %s RENAME INDEX %s TO %s;', $this->table, $this->rename->old, $this->rename->new),
+            'mysql' => sprintf('ALTER TABLE %s RENAME INDEX %s TO %s;', $this->table, $this->rename->old, $this->rename->new),
             'pgsql' => sprintf('ALTER INDEX %s RENAME TO %s;', $this->rename->old, $this->rename->new),
             'sqlite' => sprintf('DROP INDEX %s; CREATE INDEX %s ON %s (%s);', $this->rename->old, $this->rename->new, $this->table, join(', ', $this->columns)),
             default => throw new \Exception('Unsupported driver: ' . $this->driver),
@@ -117,7 +117,7 @@ class Index
         $referencedColumns = join(', ', $this->foreignKey['referenced_columns']);
 
         return match ($this->driver) {
-            'mysql', 'mariadb', 'pgsql' => sprintf('ALTER TABLE %s ADD CONSTRAINT %s FOREIGN KEY (%s) REFERENCES %s (%s);', $this->table, $this->name, $columns, $referencedTable, $referencedColumns),
+            'mysql', 'pgsql' => sprintf('ALTER TABLE %s ADD CONSTRAINT %s FOREIGN KEY (%s) REFERENCES %s (%s);', $this->table, $this->name, $columns, $referencedTable, $referencedColumns),
             'sqlite' => sprintf('ALTER TABLE %s ADD FOREIGN KEY (%s) REFERENCES %s (%s);', $this->table, $columns, $referencedTable, $referencedColumns),
             default => throw new \Exception('Unsupported driver: ' . $this->driver),
         };
