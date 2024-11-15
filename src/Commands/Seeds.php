@@ -5,15 +5,18 @@ declare(strict_types=1);
 namespace Phico\Database\Commands;
 
 use Phico\Cli\{Args, Cli};
-use Phico\Database\DB;
+use Phico\Database\Database;
 use Phico\Database\Schema\Seed;
 
-
+/**
+ * The terminal command class for database seed commands
+ * @package Database
+ */
 class Seeds extends Cli
 {
     protected string $help = 'Usage: phico database seeds (create|list|run) [name]';
     protected string $path;
-    protected DB $db;
+    protected Database $db;
 
 
     public function __construct()

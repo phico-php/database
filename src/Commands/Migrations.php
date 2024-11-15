@@ -5,23 +5,27 @@ declare(strict_types=1);
 namespace Phico\Database\Commands;
 
 use Phico\Cli\{Args, Cli};
-use Phico\Database\DB;
+use Phico\Database\Database;
 use Phico\Database\Schema\Migration;
 
 
+/**
+ * The terminal command class for database migration commands
+ * @package Database
+ */
 class Migrations extends Cli
 {
     protected string $help = 'Usage: phico database migrations (init|create|todo|do|done|undo|drop) [name]';
     protected string $table;
     protected string $path;
-    protected DB $db;
+    protected Database $db;
 
 
     public function __construct()
     {
         $this->table = config()->get('database.migrations.table', '_migrations');
         $this->path = config()->get('database.migrations.path', 'resources/migrations');
-        $this->db = db(config()->get('database.use', 'default'));
+        $this->db = db(config()->get('database.migrations.connection', 'default'));
     }
     public function create(Args $args): void
     {
@@ -64,23 +68,23 @@ class Migrations extends Cli
                     (
                         id INTEGER PRIMARY KEY AUTOINCREMENT,
                         filename VARCHAR(255) NOT NULL,
-                        sequence INTEGER NOT NULL,
+                        batch INTEGER NOT NULL,
                         version VARCHAR(15) NOT NULL,
                         timestamp INTEGER NOT NULL
                     );",
-            'pgsql', 'psql' => "CREATE TABLE IF NOT EXISTS public.$this->table
+            'pgsql' => "CREATE TABLE IF NOT EXISTS public.$this->table
                     (
                         id serial PRIMARY KEY,
                         filename character varying(255) NOT NULL,
-                        sequence integer NOT NULL,
+                        batch integer NOT NULL,
                         version character varying(15) NOT NULL,
                         timestamp integer NOT NULL
                     );",
-            'mysql', 'mariadb' => "CREATE TABLE IF NOT EXISTS $this->table
+            'mysql' => "CREATE TABLE IF NOT EXISTS $this->table
                     (
                         id INT AUTO_INCREMENT PRIMARY KEY,
                         filename VARCHAR(255) NOT NULL,
-                        sequence INT NOT NULL,
+                        batch INT NOT NULL,
                         version VARCHAR(15) NOT NULL,
                         timestamp INT NOT NULL
                     );"
@@ -144,12 +148,12 @@ class Migrations extends Cli
 
             $this->title("Running migrations");
 
-            // fetch next sequence number
-            $sequence = $this->db
-                ->execute("SELECT max(sequence) + 1 FROM $this->table")
+            // fetch next batch number
+            $batch = $this->db
+                ->execute("SELECT max(batch) + 1 FROM $this->table")
                 ->fetchColumn(0);
-            if (!$sequence) {
-                $sequence = 1;
+            if (!$batch) {
+                $batch = 1;
             }
 
             $ts = microtime(true);
@@ -171,11 +175,11 @@ class Migrations extends Cli
                 $migration->up();
 
                 // save successful migration in db
-                $this->db->execute("INSERT INTO $this->table (sequence, filename, timestamp, version) VALUES (:sequence, :filename, :timestamp, :version)", [
-                    'sequence' => $sequence,
+                $this->db->execute("INSERT INTO $this->table (batch, filename, timestamp, version) VALUES (:batch, :filename, :timestamp, :version)", [
+                    'batch' => $batch,
                     'filename' => $filename,
                     'timestamp' => time(),
-                    'version' => $sequence
+                    'version' => $batch
                 ]);
 
                 $this->write("done");
@@ -234,11 +238,11 @@ class Migrations extends Cli
 
             $ts = microtime(true);
 
-            // fetch the most recent sequence number
-            $sequence = $this->db
-                ->execute("SELECT max(sequence) FROM $this->table")
+            // fetch the most recent batch number
+            $batch = $this->db
+                ->execute("SELECT max(batch) FROM $this->table")
                 ->fetchColumn(0);
-            if (is_null($sequence)) {
+            if (is_null($batch)) {
                 $this->info("No migrations to undo\n");
                 return;
             }
@@ -246,7 +250,7 @@ class Migrations extends Cli
             $this->db->begin();
 
             $i = 0;
-            foreach ($this->getMigrationsInSequence($sequence) as $filename) {
+            foreach ($this->getMigrationsInBatch($batch) as $filename) {
 
                 $this->write(sprintf("%d. %s ... ", ++$i, $filename), false);
 
@@ -312,8 +316,8 @@ class Migrations extends Cli
 
         $sql = match ($this->db->attr(\PDO::ATTR_DRIVER_NAME)) {
             'sqlite' => "SELECT name FROM sqlite_master WHERE type='table' AND name='$table';",
-            'pgsql', 'psql' => "SELECT EXISTS (SELECT 1 FROM information_schema.tables WHERE table_name = '$table')",
-            'mysql', 'mariadb' => "SELECT COUNT(*) FROM information_schema.tables WHERE table_schema = '$db_name'  AND table_name = '$table';"
+            'pgsql' => "SELECT EXISTS (SELECT 1 FROM information_schema.tables WHERE table_name = '$table')",
+            'mysql' => "SELECT COUNT(*) FROM information_schema.tables WHERE table_schema = '$db_name'  AND table_name = '$table';"
         };
 
         $stmt = $this->db->execute($sql);
@@ -347,12 +351,12 @@ class Migrations extends Cli
         // return difference between migrations on disk and in database table
         return array_diff($this->getMigrationFiles(), $this->getMigrationRows());
     }
-    private function getMigrationsInSequence(int $sequence): array
+    private function getMigrationsInBatch(int $batch): array
     {
         $out = [];
         $items = $this->db
-            ->execute("SELECT * FROM $this->table WHERE sequence=:sequence ORDER BY timestamp ASC, filename ASC", [
-                'sequence' => $sequence
+            ->execute("SELECT * FROM $this->table WHERE batch=:batch ORDER BY timestamp ASC, filename ASC", [
+                'batch' => $batch
             ])->fetchAll(\PDO::FETCH_OBJ);
         foreach ($items as $item) {
             $out[] = $item->filename;
