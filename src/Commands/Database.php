@@ -5,16 +5,25 @@ declare(strict_types=1);
 namespace Phico\Database\Commands;
 
 use Phico\Cli\{Args, Cli};
-use Phico\Database\DB;
 
 
+/**
+ * The terminal command class for general database commands
+ * @package Database
+ */
 class Database extends Cli
 {
     protected string $help = 'Usage: phico database use [connection name]';
     protected string $path;
-    protected DB $db;
 
 
+    /**
+     * Connects the current CLI session to a database by a pre-configured connection name.
+     * Usage: phico database use connection-name
+     * @param \Phico\Cli\Args $args
+     * @throws \RuntimeException
+     * @return void
+     */
     public function use(Args $args)
     {
         if (php_sapi_name() !== 'cli') {
@@ -34,7 +43,7 @@ class Database extends Cli
                 escapeshellarg($config['database']),
             ),
 
-            'psql' => sprintf(
+            'pgsql' => sprintf(
                 'PGPASSWORD=%s psql -U %s -h %s -p %s -d %s',
                 escapeshellarg($config['password']),
                 escapeshellarg($config['username']),
@@ -60,7 +69,6 @@ class Database extends Cli
         $this->showCheatsheet($config['driver']);
 
         $proc = proc_open($cmd, $redirects, $pipes, $cwd, $env);
-
         if (is_resource($proc)) {
             proc_close($proc);
         } else {
@@ -93,7 +101,7 @@ class Database extends Cli
 
         }
 
-        if ($driver === 'psql') {
+        if ($driver === 'pgsql') {
 
             $this->title('PostgreSQL Cheat Sheet');
             $this->table([
