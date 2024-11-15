@@ -1,30 +1,69 @@
 <?php
 
+declare(strict_types=1);
+
 namespace Phico\Database\Schema;
 
+use Throwable;
 use BadMethodCallException;
 use InvalidArgumentException;
 
+
 class Table
 {
-    private string $name;
-    private string $rename;
-    private string $dialect;
-    private string $mode; // alter | create
-    private string $exists; // if (not) exists
-    private array $columns = [];
-    private array $indices = [];
-    private array $constraints = [];
+    /**
+     * The database dialect to render
+     * @var string
+     */
+    protected string $dialect;
+    /**
+     * The table name
+     * @var string
+     */
+    protected string $name;
+    /**
+     * The table modification mode
+     * create|alter|drop|rename|truncate
+     * @var string
+     */
+    protected string $mode;
+    /**
+     * The exists or not exists statement
+     * @var string
+     */
+    protected string $exists;
+    /**
+     * The list of columns to manipulate
+     * @var array<int,Column>
+     */
+    protected array $columns = [];
+    /**
+     * The list of Indexes to manipulate
+     * @var array<int,Index>
+     */
+    protected array $indices = [];
+    /**
+     * An array of table constraints
+     * @var array<string,string>
+     */
+    protected array $constraints = [];
 
 
     public function __construct(string $dialect)
     {
-        if (!in_array(strtolower($dialect), ['mysql', 'mariadb', 'pgsql', 'sqlite'])) {
+        if (!in_array(strtolower($dialect), ['mysql', 'pgsql', 'sqlite'])) {
             throw new InvalidArgumentException(sprintf('Table cannot handle unsupported dialect %s', $dialect));
         }
         $this->dialect = strtolower($dialect);
     }
-    public function __call(string $name, array $args): mixed
+    /**
+     * Allowed unknown method calls are passed to a new Column instance
+     * @param string $name
+     * @param array $args
+     * @throws BadMethodCallException
+     * @return Column
+     */
+    public function __call(string $name, array $args): Column
     {
         $disallow = [
             'drop',
@@ -36,16 +75,25 @@ class Table
             'primary',
             'useCurrent',
         ];
-
+        // disallowed methods cannot be the first method in the chain
         if (in_array($name, $disallow)) {
             throw new BadMethodCallException("Cannot call $name on table, call a column type first");
         }
 
+        // column type is the first argument
         $type = array_shift($args);
+
+        // @TODO handle size?
+
+        // create the new column with name and type
         return $this->column($type)->$name(...$args);
 
     }
-    public function __toString(): string
+    /**
+     * Renders the table DDL statement
+     * @return string
+     */
+    public function toSql(): string
     {
         if ($this->mode === 'DROP') {
             return sprintf(
@@ -57,7 +105,7 @@ class Table
         if ($this->mode === 'RENAME') {
             return sprintf(
                 match ($this->dialect) {
-                    'mysql', 'mariadb' => 'RENAME TABLE %s%s TO %s;',
+                    'mysql' => 'RENAME TABLE %s%s TO %s;',
                     'pgsql', 'sqlite' => 'ALTER TABLE %s%s RENAME TO %s;',
                 },
                 ($this->exists) ? "$this->exists " : '',
@@ -99,19 +147,19 @@ class Table
             }
         }
 
-        $cons = [];
-        $cols = [];
+        $constraints = [];
+        $columns = [];
         foreach ($this->columns as $name => $column) {
             // check for primary column
             if ($column->isPrimary()) {
-                $cons[] = sprintf('PRIMARY KEY(%s)', $name);
+                $this->primary($name);
             }
-            $cols[] = (string) $column;
+            $columns[] = $column->toSql();
         }
 
-        $inds = [];
+        $indices = [];
         foreach ($this->indices as $name => $index) {
-            $inds[] = (string) $index;
+            $indices[] = $index->toSql();
         }
 
         return sprintf(
@@ -119,16 +167,19 @@ class Table
             $this->mode,
             $this->exists ?? '',
             $this->quote($this->name),
-            join(",\n\t", $cols + $cons),
-            join("\n", $inds)
+            join(",\n\t", $columns + $this->constraints),
+            join("\n", $indices)
         );
     }
-
-    public function toSql(): string
-    {
-        return $this->__toString();
-    }
-
+    /**
+     * Adds a new column to the table.
+     * This method 'abuses' the try catch finally logic to enable Column method
+     * chaining and also attaching the completed chain to the columns array.
+     * @param string $name The name of the column
+     * @throws BadMethodCallException
+     * @throws InvalidArgumentException
+     * @return Column
+     */
     public function column(string $name): Column
     {
         try {
@@ -144,13 +195,13 @@ class Table
             $column = new Column($this->dialect, $name);
             return $column;
 
-        } catch (\Throwable $th) {
+        } catch (Throwable $th) {
 
             throw $th;
 
         } finally {
 
-            // not the best practise, but a great feature in this case ;)
+            // not the best practice, but a great feature in this case ;)
             if (isset($column)) { // column might not be set on error
                 $this->columns[$name] = $column;
             }
@@ -158,6 +209,15 @@ class Table
         }
 
     }
+    /**
+     * Adds an index to the table.
+     * This method 'abuses' the try catch finally logic to enable Index method
+     * chaining and also attaching the completed chain to the table.
+     * @param array|string $columns
+     * @param string $name
+     * @throws InvalidArgumentException
+     * @return Index
+     */
     public function index(array|string $columns, string $name = null): Index
     {
         try {
@@ -179,19 +239,29 @@ class Table
             $index = new Index($this->dialect, $this->name, $columns, $name);
             return $index;
 
-        } catch (\Throwable $th) {
+        } catch (Throwable $th) {
 
             throw $th;
 
         } finally {
 
-            // not the best practise, but a great feature in this case ;)
-            // @phpstan-ignore variable.undefined
-            $this->indices[$name] = $index;
+            // not the best practice, but a great feature in this case ;)
+            if (isset($index)) { // index might not be set on error
+                $this->indices[$name] = $index;
+            }
 
         }
     }
-    public function foreign(array|string $columns, string $name = null): Index
+    /**
+     * Adds a foreign index to the table.
+     * This method 'abuses' the try catch finally logic to enable Foreign method
+     * chaining and also attaching the completed chain to the table.
+     * @param array|string $columns
+     * @param string $name
+     * @throws InvalidArgumentException
+     * @return Foreign
+     */
+    public function foreign(array|string $columns, string $name = null): Foreign
     {
         try {
 
@@ -212,37 +282,61 @@ class Table
             $index = new Foreign($this->dialect, $this->name, $columns, $name);
             return $index;
 
-        } catch (\Throwable $th) {
+        } catch (Throwable $th) {
 
             throw $th;
 
         } finally {
 
-            // not the best practise, but a great feature in this case ;)
-            // @phpstan-ignore variable.undefined
-            $this->indices[$name] = $index;
+            // not the best practice, but a great feature in this case ;)
+            if (isset($index)) { // index might not be set on error
+                $this->indices[$name] = $index;
+            }
 
         }
     }
+    /**
+     * Convenience method for unique indexes, simply calls the unique() method after the index is created.
+     * @param array|string $columns
+     * @param string $name
+     * @return Index
+     */
     public function unique(array|string $columns, string $name = null): Index
     {
         return $this->index($columns, $name)->unique();
     }
 
+    /**
+     * Switches DDL statement to alter mode
+     * @param string $name The name of the table to operate on
+     * @return self
+     */
     public function alter(string $name): self
     {
         $this->mode = 'ALTER';
         $this->name = $name;
         $this->exists = $this->exists ?? '';
+
         return $this;
     }
+    /**
+     * Switches DDL statement to create mode
+     * @param string $name The name of the table to operate on
+     * @return self
+     */
     public function create(string $name): self
     {
         $this->mode = 'CREATE';
         $this->name = $name;
         $this->exists = $this->exists ?? '';
+
         return $this;
     }
+    /**
+     * Switches DDL statement to drop mode
+     * @param string $name The name of the table to operate on
+     * @return self
+     */
     public function drop(string $name): self
     {
         $this->mode = 'DROP';
@@ -251,6 +345,11 @@ class Table
 
         return $this;
     }
+    /**
+     * Switches DDL statement to drop mode adding the if exists constraint
+     * @param string $name The name of the table to operate on
+     * @return self
+     */
     public function dropIfExists(string $name): self
     {
         $this->mode = 'DROP';
@@ -259,16 +358,12 @@ class Table
 
         return $this;
     }
-    public function ifExists(): self
-    {
-        $this->exists = 'IF EXISTS';
-        return $this;
-    }
-    public function ifNotExists(): self
-    {
-        $this->exists = 'IF NOT EXISTS';
-        return $this;
-    }
+    /**
+     * Switches DDL statement to rename mode
+     * @param string $old The current name of the table
+     * @param string $new The new name of the table
+     * @return self
+     */
     public function rename(string $old, string $new): self
     {
         $this->mode = 'RENAME';
@@ -278,6 +373,12 @@ class Table
 
         return $this;
     }
+    /**
+     * Switches DDL statement to rename mode adding the if exists constraint
+     * @param string $old The current name of the table
+     * @param string $new The new name of the table
+     * @return self
+     */
     public function renameIfExists(string $old, string $new): self
     {
         $this->mode = 'RENAME';
@@ -287,14 +388,24 @@ class Table
 
         return $this;
     }
+    /**
+     * Switches DDL statement to truncate mode
+     * @return self
+     */
     public function truncate(string $name): self
     {
         $this->mode = 'TRUNCATE';
         $this->name = $name;
+
         return $this;
     }
 
-    // auto columns
+    // convenience column helpers
+
+    /**
+     * Adds deleted_at timestamp and deleted_by integer columns
+     * @return self
+     */
     public function softDelete(): self
     {
         $this->columns['deleted_at'] = (new Column($this->dialect, 'deleted_at'))
@@ -306,6 +417,10 @@ class Table
 
         return $this;
     }
+    /**
+     * Adds created_at and updated_at timestamp columns
+     * @return self
+     */
     public function timestamps(): self
     {
         $this->columns['created_at'] = (new Column($this->dialect, 'created_at'))
@@ -317,6 +432,10 @@ class Table
 
         return $this;
     }
+    /**
+     * Adds created_by and updated_by timestamp columns
+     * @return self
+     */
     public function userstamps(): self
     {
         $this->columns['created_by'] = (new Column($this->dialect, 'created_by'))
@@ -329,43 +448,100 @@ class Table
         return $this;
     }
 
-
     // constraints
 
+    /**
+     * Sets the charset constraint value.
+     * @param string $charset The table charset
+     * @return self
+     */
     public function charset(string $charset): self
     {
         $this->constraints['charset'] = $charset;
         return $this;
     }
+    /**
+     * Sets the collation constraint value.
+     * @param string $collation The table collation
+     * @return self
+     */
     public function collation(string $collation): self
     {
         $this->constraints['collation'] = $collation;
         return $this;
     }
+    /**
+     * Sets the table engine value
+     * @param string $engine The table engine to use
+     * @return self
+     */
     public function engine(string $engine): self
     {
         $this->constraints['engine'] = $engine;
         return $this;
     }
+    /**
+     * Sets the if exists constraint.
+     * @return self
+     */
+    public function ifExists(): self
+    {
+        $this->exists = 'IF EXISTS';
+
+        return $this;
+    }
+    /**
+     * Sets the if not exists constraint.
+     * @return self
+     */
+    public function ifNotExists(): self
+    {
+        $this->exists = 'IF NOT EXISTS';
+
+        return $this;
+    }
+    /**
+     * Sets the table primary key column name
+     * @param array|string $name The name of the primary column
+     * @return self
+     */
+    public function primary(array|string $name): self
+    {
+        $this->constraints['primary'] = match ($this->dialect) {
+            'mysql', 'sqlite' => sprintf('PRIMARY KEY (%s)', $this->quote($name)),
+            'pgsql' => '',
+        };
+        return $this;
+    }
+    /**
+     * Sets the strict constraint
+     * @return self
+     */
     public function strict(): self
     {
         $this->constraints['strict'] = 'strict';
         return $this;
     }
+    /**
+     * Sets the 'without rowid' constraint
+     * @return self
+     */
     public function withoutRowId(): self
     {
         $this->constraints['without rowid'] = 'without rowid';
         return $this;
     }
 
-    // private function generateIndexName(array $columns): string
-    // {
-    //     return sprintf('%s_index_%s', $this->name, join('_', $columns));
-    // }
-    private function quote(string $str): string
+    /**
+     * Returns a dialect appropriate quoted string
+     * (This code is repeated in Column.php)
+     * @param string $str The string to quote
+     * @return string
+     */
+    protected function quote(string $str): string
     {
         return match ($this->dialect) {
-            'mysql', 'mariadb' => sprintf('`%s`', $str),
+            'mysql' => sprintf('`%s`', $str),
             'pgsql', 'sqlite' => sprintf('"%s"', $str),
         };
     }

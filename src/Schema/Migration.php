@@ -6,21 +6,27 @@ namespace Phico\Database\Schema;
 
 use Phico\Database\DB;
 
-// base class for migrations
+/**
+ * The base migration class which is extended by custom Migrations
+ */
 abstract class Migration
 {
+    /**
+     * The constructor requires a DB instance
+     * @param \Phico\Database\DB $db
+     */
     public function __construct(protected DB $db)
     {
         $this->db = $db;
     }
-    public function run(): void
-    {
-        $this->up();
-    }
-    public function rollback(): void
-    {
-        $this->down();
-    }
+    /**
+     * Code to make changes to the database
+     * @return void
+     */
     abstract public function up(): void;
+    /**
+     * Code that reverses the changes above
+     * @return void
+     */
     abstract public function down(): void;
 }

@@ -1,35 +1,26 @@
 <?php
 
+declare(strict_types=1);
+
 namespace Phico\Database\Schema;
 
-class Index
+
+class Foreign extends Index
 {
-    private string $mode;
-    private string $dialect;
-    private string $table;
-    private string $name;
-    private object $rename;
-    private bool $drop;
-    private bool $unique;
-    private array $columns = [];
-    private array $foreign = [];
-
-
-    public function __construct(
-        string $dialect,
-        string $table,
-        array $columns,
-        string $name = null
-    ) {
-        $this->mode = 'create';
-        $this->dialect = $dialect;
-        $this->table = $table;
-        $this->name = $name ?? $this->makeName($columns);
-        $this->columns = $columns;
-        $this->drop = false;
-        $this->unique = false;
+    /**
+     * Sets a standardised name for the index, used if the index name is not provided
+     * e.g. table-name_columns_foreign_idx
+     * @param array $columns
+     * @return void
+     */
+    protected function setName(array $columns): void
+    {
+        $this->name = sprintf('%s_%s__foreign_idx', $this->table, join('_', $columns));
     }
-
+    /**
+     * Drops the index from the table
+     * @return self
+     */
     public function drop(): self
     {
         if ($this->dialect === 'sqlite') {
@@ -39,57 +30,42 @@ class Index
         $this->mode = 'drop';
         return $this;
     }
-    public function rename(string $old, string $new): self
+    /**
+     * Returns the DDL statement for this index
+     * @return string
+     */
+    public function toSql(): string
     {
-        $this->mode = 'rename';
-        $this->rename = (object) [
-            'old' => $old,
-            'new' => $new
-        ];
-        return $this;
+        return match ($this->mode) {
+            'create' => $this->getCreateStatement(),
+            'drop' => $this->getDropStatement(),
+        };
     }
-
-
-    public function __toString(): string
+    /**
+     * Returns a create statement
+     * @return string
+     */
+    protected function getCreateStatement(): string
     {
-        switch ($this->mode) {
-            case 'drop':
-                return $this->makeDropSyntax();
+        // sprintf('ALTER TABLE %s ADD CONSTRAINT %s FOREIGN KEY (%s) REFERENCES %s (%s);', $this->table, $this->name, $columns, $referencedTable, $referencedColumns);
 
-            // case 'rename':
-            //     return $this->makeRenameSyntax();
-
-            case 'create':
-            default:
-                return $this->makeCreateSyntax();
-        }
-    }
-
-    private function makeCreateSyntax(): string
-    {
-        $out = sprintf(
+        return sprintf(
             'CREATE%s INDEX %s ON %s (%s);',
             ($this->unique) ? ' UNIQUE' : '',
             $this->name,
             $this->table,
             join(', ', $this->columns)
         );
-
-        // sprintf('ALTER TABLE %s ADD CONSTRAINT %s FOREIGN KEY (%s) REFERENCES %s (%s);', $this->table, $this->name, $columns, $referencedTable, $referencedColumns);
-
-
-        return $out;
     }
-    private function makeDropSyntax(): string
+    /**
+     * Returns a drop statement
+     * @return string
+     */
+    protected function getDropStatement(): string
     {
         return match ($this->dialect) {
-            'mysql', 'mariadb' => sprintf('ALTER TABLE `%s` DROP FOREIGN KEY `%s`;', $this->table, $this->name),
+            'mysql' => sprintf('ALTER TABLE `%s` DROP FOREIGN KEY `%s`;', $this->table, $this->name),
             'pgsql' => sprintf('ALTER TABLE "%s" DROP CONSTRAINT "%s" ;', $this->table, $this->name),
         };
-    }
-
-    private function makeName(array $columns): string
-    {
-        return sprintf('%s_%s__foindex', $this->name, join('_', $columns));
     }
 }
