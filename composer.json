@@ -38,6 +38,7 @@
     "mockery/mockery": "2.0.x-dev"
   },
   "scripts": {
-    "analyse": "vendor/bin/phpstan analyse src/"
+    "analyse": "vendor/bin/phpstan analyse src/",
+    "build:docs": "doctum update doctum.php"
   }
 }
