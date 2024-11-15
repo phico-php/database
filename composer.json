@@ -39,6 +39,10 @@
   },
   "scripts": {
     "analyse": "vendor/bin/phpstan analyse src/",
-    "build:docs": "doctum update doctum.php"
+    "build:docs": "doctum update doctum.php",
+    "test:all": "./vendor/bin/pest tests/",
+    "test:bail": "./vendor/bin/pest --bail tests/",
+    "test:coverage": "./vendor/bin/pest --coverage-html build/coverage tests/",
+    "test": "./vendor/bin/pest --bail"
   }
 }
