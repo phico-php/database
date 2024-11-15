@@ -1,0 +1,64 @@
+<?php
+
+namespace Tests\Column;
+
+use Phico\Database\Schema\{Column, Table};
+
+test("can create an integer column", function ($expect, $dialect) {
+    $c = new Column($dialect, "name");
+    $c->integer();
+
+    expect(strip($c->toSql()))->toBe($expect);
+})->with([
+    ["`name` integer not null", "mysql"],
+    ['"name" integer not null', "pgsql"],
+    ['"name" integer not null', "sqlite"],
+]);
+
+test("can create an integer column with size", function ($expect, $dialect) {
+    $c = new Column($dialect, "name");
+    $c->integer(4);
+
+    expect(strip($c->toSql()))->toBe($expect);
+})->with([
+    ["`name` integer(4) not null", "mysql"],
+    ['"name" integer(4) not null', "pgsql"],
+    ['"name" integer not null', "sqlite"],
+]);
+test("can create a nullable integer column", function ($expect, $dialect) {
+    $c = new Column($dialect, "name");
+    $c->integer(4)->nullable();
+
+    expect(strip($c->toSql()))->toBe($expect);
+})->with([["`name` integer(4) null", "mysql"], ['"name" integer(4) null', "pgsql"], ['"name" integer null', "sqlite"]]);
+
+test("can create an integer column not nullable", function ($expect, $dialect) {
+    $c = new Column($dialect, "name");
+    $c->integer()->notNull();
+
+    expect(strip($c->toSql()))->toBe($expect);
+})->with([
+    ["`name` integer not null", "mysql"],
+    ['"name" integer not null', "pgsql"],
+    ['"name" integer not null', "sqlite"],
+]);
+test("can create an integer column with a default", function ($expect, $dialect) {
+    $c = new Column($dialect, "name");
+    $c->integer()->default(100);
+
+    expect(strip($c->toSql()))->toBe($expect);
+})->with([
+    ["`name` integer not null default 100", "mysql"],
+    ['"name" integer not null default 100', "pgsql"],
+    ['"name" integer not null default 100', "sqlite"],
+]);
+test("can create an integer column with a comment", function ($expect, $dialect) {
+    $c = new Column($dialect, "name");
+    $c->integer()->comment("This is a comment");
+
+    expect(strip($c->toSql()))->toBe($expect);
+})->with([
+    ['`name` integer not null comment "This is a comment"', "mysql"],
+    ['"name" integer not null comment "This is a comment"', "pgsql"],
+    ['"name" integer not null comment "This is a comment"', "sqlite"],
+]);

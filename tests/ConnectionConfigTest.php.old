@@ -1,0 +1,325 @@
+<?php
+
+use Phico\Database\ConnectionConfig;
+
+// test valid SQLite config against DSN
+test('Valid SQLite configs are accepted', function ($dsn, $config) {
+
+    $c = ConnectionConfig::fromArray($config);
+    expect($c)->toBeInstanceOf(ConnectionConfig::class);
+    expect($c->toDsn())->toBe($dsn);
+
+})->with([
+            'home folder' => [
+                'sqlite:dbname=~/test.db',
+                ['driver' => 'sqlite', 'database' => '~/test.db']
+            ],
+            'nested folder' => [
+                'sqlite:dbname=/home/dev/test.db',
+                ['driver' => 'sqlite', 'database' => '/home/dev/test.db']
+            ],
+            'memory' => [
+                'sqlite::memory:',
+                ['driver' => 'sqlite', 'database' => ':memory:']
+            ],
+        ]);
+
+// test valid MySQL config against DSN
+test('Valid MySQL configs are accepted', function ($dsn, $config) {
+
+    $c = ConnectionConfig::fromArray($config);
+    expect($c)->toBeInstanceOf(ConnectionConfig::class);
+    expect($c->toDsn())->toBe($dsn);
+
+})->with([
+            'localhost with default port' => [
+                'mysql:host=localhost;port=3306;dbname=test',
+                ['driver' => 'mysql', 'host' => 'localhost', 'database' => 'test']
+            ],
+            'localhost with specified port' => [
+                'mysql:host=localhost;port=3307;dbname=test',
+                ['driver' => 'mysql', 'host' => 'localhost', 'port' => 3307, 'database' => 'test']
+            ],
+            'remote with specified port' => [
+                'mysql:host=10.0.0.15;port=3307;dbname=test',
+                ['driver' => 'mysql', 'host' => '10.0.0.15', 'port' => 3307, 'database' => 'test']
+            ],
+            'remote with default port and charset' => [
+                'mysql:host=10.0.0.15;port=3306;dbname=test;charset=LATIN1',
+                ['driver' => 'mysql', 'host' => '10.0.0.15', 'charset' => 'LATIN1', 'database' => 'test']
+            ],
+            'local socket' => [
+                'mysql:unix_socket=/var/tmp/mysql.sock;dbname=test',
+                ['driver' => 'mysql', 'socket' => '/var/tmp/mysql.sock', 'database' => 'test']
+            ],
+            'local socket with charset' => [
+                'mysql:unix_socket=/var/tmp/mysql.sock;dbname=test;charset=utf8mb4',
+                ['driver' => 'mysql', 'socket' => '/var/tmp/mysql.sock', 'database' => 'test', 'charset' => 'utf8mb4']
+            ],
+        ]);
+
+// test valid Postgres config against DSN
+test('Valid Postgres configs are accepted', function ($dsn, $config) {
+
+    $c = ConnectionConfig::fromArray($config);
+    expect($c)->toBeInstanceOf(ConnectionConfig::class);
+    expect($c->toDsn())->toBe($dsn);
+
+})->with([
+            'localhost with default port' => [
+                'pgsql:host=localhost;port=5432;dbname=test',
+                ['driver' => 'pgsql', 'host' => 'localhost', 'database' => 'test']
+            ],
+            'localhost with specified port' => [
+                'pgsql:host=localhost;port=4321;dbname=test',
+                ['driver' => 'pgsql', 'host' => 'localhost', 'port' => 4321, 'database' => 'test']
+            ],
+            'remote with specified port' => [
+                'pgsql:host=10.0.0.15;port=4321;dbname=test',
+                ['driver' => 'pgsql', 'host' => '10.0.0.15', 'port' => 4321, 'database' => 'test']
+            ],
+            'remote with default port and charset' => [
+                'pgsql:host=10.0.0.15;port=5432;dbname=test;charset=LATIN1',
+                ['driver' => 'pgsql', 'host' => '10.0.0.15', 'charset' => 'LATIN1', 'database' => 'test']
+            ],
+            'local socket' => [
+                'pgsql:unix_socket=/var/tmp/pgsql.sock;dbname=test',
+                ['driver' => 'pgsql', 'socket' => '/var/tmp/pgsql.sock', 'database' => 'test']
+            ],
+            'local socket with charset' => [
+                'pgsql:unix_socket=/var/tmp/pgsql.sock;dbname=test;charset=UTF8',
+                ['driver' => 'pgsql', 'socket' => '/var/tmp/pgsql.sock', 'database' => 'test', 'charset' => 'UTF8']
+            ],
+        ]);
+
+// test valid SQLite DSN against config
+test('Valid SQLite DSN is accepted', function ($dsn, $config) {
+
+    $c = ConnectionConfig::fromDsn($dsn);
+    expect($c)->toBeInstanceOf(ConnectionConfig::class);
+    expect($c->toArray())->toBe($config);
+
+})->with([
+            'home folder' => [
+                'sqlite:dbname=~/test.db',
+                ['driver' => 'sqlite', 'database' => '~/test.db']
+            ],
+            'nested folder' => [
+                'sqlite:dbname=/home/dev/test.db',
+                ['driver' => 'sqlite', 'database' => '/home/dev/test.db']
+            ],
+            'memory' => [
+                'sqlite::memory:',
+                ['driver' => 'sqlite', 'database' => ':memory:']
+            ],
+        ]);
+
+// test valid MySQL DSN against config
+test('Valid MySQL DSN is accepted', function ($dsn, $config) {
+
+    $c = ConnectionConfig::fromArray($config);
+    expect($c)->toBeInstanceOf(ConnectionConfig::class);
+    expect($c->toDsn())->toBe($dsn);
+
+})->with([
+            'localhost with default port' => [
+                'mysql:host=localhost;dbname=test',
+                ['driver' => 'mysql', 'host' => 'localhost', 'port' => 3306, 'database' => 'test']
+            ],
+            'localhost with specified port' => [
+                'mysql:host=localhost;port=3307;dbname=test',
+                ['driver' => 'mysql', 'host' => 'localhost', 'port' => 3307, 'database' => 'test']
+            ],
+            'remote with specified port' => [
+                'mysql:host=10.0.0.15;port=3307;dbname=test',
+                ['driver' => 'mysql', 'host' => '10.0.0.15', 'port' => 3307, 'database' => 'test']
+            ],
+            'remote with default port and charset' => [
+                'mysql:host=10.0.0.15;port=3306;dbname=test;charset=LATIN1',
+                ['driver' => 'mysql', 'host' => '10.0.0.15', 'charset' => 'LATIN1', 'database' => 'test']
+            ],
+            'local socket' => [
+                'mysql:unix_socket=/var/tmp/mysql.sock;dbname=test',
+                ['driver' => 'mysql', 'socket' => '/var/tmp/mysql.sock', 'database' => 'test']
+            ],
+            'local socket with charset' => [
+                'mysql:unix_socket=/var/tmp/mysql.sock;dbname=test;charset=utf8mb4',
+                ['driver' => 'mysql', 'socket' => '/var/tmp/mysql.sock', 'database' => 'test', 'charset' => 'utf8mb4']
+            ],
+        ]);
+
+// test valid Postgres DSN against config
+test('Valid Postgres DSN is accepted', function ($dsn, $config) {
+
+    $c = ConnectionConfig::fromArray($config);
+    expect($c)->toBeInstanceOf(ConnectionConfig::class);
+    expect($c->toDsn())->toBe($dsn);
+
+})->with([
+            'localhost with default port' => [
+                'pgsql:host=localhost;port=5432;dbname=test',
+                ['driver' => 'pgsql', 'host' => 'localhost', 'database' => 'test']
+            ],
+            'localhost with specified port' => [
+                'pgsql:host=localhost;port=4321;dbname=test',
+                ['driver' => 'pgsql', 'host' => 'localhost', 'port' => 4321, 'database' => 'test']
+            ],
+            'remote with specified port' => [
+                'pgsql:host=10.0.0.15;port=4321;dbname=test',
+                ['driver' => 'pgsql', 'host' => '10.0.0.15', 'port' => 4321, 'database' => 'test']
+            ],
+            'remote with default port and charset' => [
+                'pgsql:host=10.0.0.15;port=5432;dbname=test;charset=LATIN1',
+                ['driver' => 'pgsql', 'host' => '10.0.0.15', 'charset' => 'LATIN1', 'database' => 'test']
+            ],
+            'local socket' => [
+                'pgsql:unix_socket=/var/tmp/pgsql.sock;dbname=test',
+                ['driver' => 'pgsql', 'socket' => '/var/tmp/pgsql.sock', 'database' => 'test']
+            ],
+            'local socket with charset' => [
+                'pgsql:unix_socket=/var/tmp/pgsql.sock;dbname=test;charset=UTF8',
+                ['driver' => 'pgsql', 'socket' => '/var/tmp/pgsql.sock', 'database' => 'test', 'charset' => 'UTF8']
+            ],
+        ]);
+
+// test invalid SQLite config throw exceptions
+test('Invalid SQLite configs throw exceptions', function ($message, $config) {
+
+    try {
+        ConnectionConfig::fromArray($config);
+    } catch (\Throwable $th) {
+        expect($th)->toBeInstanceOf(InvalidArgumentException::class);
+        expect($th->getMessage())->toBe($message);
+    }
+
+})
+    ->with([
+        'empty' => [
+            'Cannot create ConnectionConfig from array as it is missing the driver name',
+            []
+        ],
+        'missing driver' => [
+            'Cannot create ConnectionConfig from array as it is missing the driver name',
+            ['driver' => null]
+        ],
+        'missing database for sqlite' => [
+            'Cannot create ConnectionConfig from array as it is missing the database name',
+            ['driver' => 'sqlite']
+        ],
+        'null database for sqlite' => [
+            'Cannot create ConnectionConfig from array as it is missing the database name',
+            ['driver' => 'sqlite', 'database' => null]
+        ],
+        'provided host and socket' => [
+            'Passed host and socket for connection, use one or the other not both',
+            ['driver' => 'mysql', 'database' => 'test-db', 'host' => 'localhost', 'socket' => '/var/tmp/mysql.sock']
+        ],
+    ]);
+
+// test invalid MySQL config throw exceptions
+test('Invalid MySQL configs throw exceptions', function ($message, $config) {
+
+    try {
+        ConnectionConfig::fromArray($config);
+    } catch (\Throwable $th) {
+        expect($th)->toBeInstanceOf(InvalidArgumentException::class);
+        expect($th->getMessage())->toBe($message);
+    }
+
+})
+    ->with([
+        'empty' => [
+            'Cannot create ConnectionConfig from array as it is missing the driver name',
+            []
+        ],
+        'missing driver' => [
+            'Cannot create ConnectionConfig from array as it is missing the driver name',
+            ['driver' => null]
+        ],
+        'missing database' => [
+            'Cannot create ConnectionConfig from array as it is missing the database name',
+            ['driver' => 'mysql']
+        ],
+        'null database' => [
+            'Cannot create ConnectionConfig from array as it is missing the database name',
+            ['driver' => 'mysql', 'database' => null]
+        ],
+        'missing host and socket' => [
+            'Missing host and socket for connection, please provide a hostname or socket to connect to',
+            ['driver' => 'mysql', 'database' => 'test-db']
+        ],
+        'provided host and socket' => [
+            'Passed host and socket for connection, use one or the other not both',
+            ['driver' => 'mysql', 'database' => 'test-db', 'host' => 'localhost', 'socket' => '/var/tmp/mysql.sock']
+        ],
+    ]);
+
+// test invalid Postgres config throw exceptions
+test('Invalid Postgres configs throw exceptions', function ($message, $config) {
+
+    try {
+        ConnectionConfig::fromArray($config);
+    } catch (\Throwable $th) {
+        expect($th)->toBeInstanceOf(InvalidArgumentException::class);
+        expect($th->getMessage())->toBe($message);
+    }
+
+})
+    ->with([
+        'empty' => [
+            'Cannot create ConnectionConfig from array as it is missing the driver name',
+            []
+        ],
+        'missing driver' => [
+            'Cannot create ConnectionConfig from array as it is missing the driver name',
+            ['driver' => null]
+        ],
+        'missing database' => [
+            'Cannot create ConnectionConfig from array as it is missing the database name',
+            ['driver' => 'pgsql']
+        ],
+        'null database' => [
+            'Cannot create ConnectionConfig from array as it is missing the database name',
+            ['driver' => 'pgsql', 'database' => null]
+        ],
+        'missing host and socket' => [
+            'Missing host and socket for connection, please provide a hostname or socket to connect to',
+            ['driver' => 'pgsql', 'database' => 'test-db']
+        ],
+        'provided host and socket' => [
+            'Passed host and socket for connection, use one or the other not both',
+            ['driver' => 'pgsql', 'database' => 'test-db', 'host' => 'localhost', 'socket' => '/var/tmp/mysql.sock']
+        ],
+    ]);
+
+// test unsupported driver throws exception
+test('Unsupported driver throws exception', function () {
+
+    try {
+        ConnectionConfig::fromArray([
+            'driver' => 'mssql',
+            'database' => 'test'
+        ]);
+    } catch (\Throwable $th) {
+        expect($th)->toBeInstanceOf(InvalidArgumentException::class);
+        expect($th->getMessage())->toBe('Cannot use unsupported driver mssql');
+    }
+
+});
+
+// test default ports
+test('Default ports are used if not provided', function ($expected, $config) {
+
+    $c = ConnectionConfig::fromArray($config);
+    expect($c->toArray()['port'])->toBe($expected);
+
+})->with([
+            'missing port for mysql uses default 3306' => [
+                3306,
+                ['driver' => 'mysql', 'database' => 'test.db', 'host' => 'localhost']
+            ],
+            'missing port for pgsql uses default 5432' => [
+                5432,
+                ['driver' => 'pgsql', 'database' => 'test.db', 'host' => 'localhost']
+            ],
+        ]);

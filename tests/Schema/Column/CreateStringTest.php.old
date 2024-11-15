@@ -1,0 +1,68 @@
+<?php
+
+namespace Tests\Column;
+
+use Phico\Database\Schema\{Column, Table};
+
+test("can create a string column", function ($expect, $dialect) {
+    $c = new Column($dialect, "name");
+    $c->string();
+
+    expect(strip($c->toSql()))->toBe($expect);
+})->with([
+    ["`name` varchar(255) not null", "mysql"],
+    ['"name" varchar(255) not null', "pgsql"],
+    ['"name" text not null', "sqlite"],
+]);
+
+test("can create a string column with size", function ($expect, $dialect) {
+    $c = new Column($dialect, "name");
+    $c->string(4);
+
+    expect(strip($c->toSql()))->toBe($expect);
+})->with([
+    ["`name` varchar(4) not null", "mysql"],
+    ['"name" varchar(4) not null', "pgsql"],
+    ['"name" text not null', "sqlite"],
+]);
+
+test("can create a nullable string column", function ($expect, $dialect) {
+    $c = new Column($dialect, "name");
+    $c->string()->nullable();
+
+    expect(strip($c->toSql()))->toBe($expect);
+})->with([
+    ["`name` varchar(255) null", "mysql"],
+    ['"name" varchar(255) null', "pgsql"],
+    ['"name" text null', "sqlite"],
+]);
+test("can create a string column not nullable", function ($expect, $dialect) {
+    $c = new Column($dialect, "name");
+    $c->string()->notNull();
+
+    expect(strip($c->toSql()))->toBe($expect);
+})->with([
+    ["`name` varchar(255) not null", "mysql"],
+    ['"name" varchar(255) not null', "pgsql"],
+    ['"name" text not null', "sqlite"],
+]);
+test("can create a string column with a default", function ($expect, $dialect) {
+    $c = new Column($dialect, "name");
+    $c->string()->default("Bob");
+
+    expect(strip($c->toSql()))->toBe($expect);
+})->with([
+    ['`name` varchar(255) not null default "Bob"', "mysql"],
+    ['"name" varchar(255) not null default "Bob"', "pgsql"],
+    ['"name" text not null default "Bob"', "sqlite"],
+]);
+test("can create a string column with a comment", function ($expect, $dialect) {
+    $c = new Column($dialect, "name");
+    $c->string()->comment("This is a comment");
+
+    expect(strip($c->toSql()))->toBe($expect);
+})->with([
+    ['`name` varchar(255) not null comment "This is a comment"', "mysql"],
+    ['"name" varchar(255) not null comment "This is a comment"', "pgsql"],
+    ['"name" text not null comment "This is a comment"', "sqlite"],
+]);

@@ -1,41 +1,42 @@
 <?php
 
-namespace Tests\Index;
-
 use Phico\Database\Schema\Index;
 
-test('can create an index', function ($expect, $dialect, $unique) {
 
-    $index = new Index($dialect, 'example', ['column1', 'column2'], 'example_index');
+test('can create an index with a name', function ($expect, $dialect, $unique) {
+
+    $index = new Index($dialect, 'example', ['column1', 'column2'], 'custom_column1_column2_idx');
 
     if ($unique) {
         $index->unique();
     }
 
-    expect((string) $index)->toBe($expect);
+    expect($index->toSql())->toBe($expect);
 
 })->with([
-            ['CREATE INDEX example_index ON example (column1, column2);', 'mysql', false],
-            ['CREATE UNIQUE INDEX example_index ON example (column1, column2);', 'mysql', true],
-            ['CREATE INDEX example_index ON example (column1, column2);', 'pgsql', false],
-            ['CREATE UNIQUE INDEX example_index ON example (column1, column2);', 'pgsql', true],
-            ['CREATE INDEX example_index ON example (column1, column2);', 'sqlite', false],
-            ['CREATE UNIQUE INDEX example_index ON example (column1, column2);', 'sqlite', true],
+            ['CREATE INDEX custom_column1_column2_idx ON example (column1, column2);', 'mysql', false],
+            ['CREATE UNIQUE INDEX custom_column1_column2_idx ON example (column1, column2);', 'mysql', true],
+            ['CREATE INDEX custom_column1_column2_idx ON example (column1, column2);', 'pgsql', false],
+            ['CREATE UNIQUE INDEX custom_column1_column2_idx ON example (column1, column2);', 'pgsql', true],
+            ['CREATE INDEX custom_column1_column2_idx ON example (column1, column2);', 'sqlite', false],
+            ['CREATE UNIQUE INDEX custom_column1_column2_idx ON example (column1, column2);', 'sqlite', true],
         ]);
 
-test('can create a foreign key', function ($expect, $dialect) {
+test('can create an index without a name', function ($expect, $dialect, $unique) {
 
-    $index = new Index($dialect, 'example', ['column1'], 'example_fk');
-    $index->addForeignKey([
-        'columns' => ['column1'],
-        'referenced_table' => 'other_table',
-        'referenced_columns' => ['id']
-    ]);
+    $index = new Index($dialect, 'example', ['column1', 'column2']);
 
-    expect((string) $index)->toBe($expect);
+    if ($unique) {
+        $index->unique();
+    }
+
+    expect($index->toSql())->toBe($expect);
 
 })->with([
-            ['CREATE INDEX example_fk ON example (column1); ALTER TABLE example ADD CONSTRAINT example_fk FOREIGN KEY (column1) REFERENCES other_table (id);', 'mysql'],
-            ['CREATE INDEX example_fk ON example (column1); ALTER TABLE example ADD CONSTRAINT example_fk FOREIGN KEY (column1) REFERENCES other_table (id);', 'pgsql'],
-            ['CREATE INDEX example_fk ON example (column1); ALTER TABLE example ADD FOREIGN KEY (column1) REFERENCES other_table (id);', 'sqlite'],
+            ['CREATE INDEX example_column1_column2_idx ON example (column1, column2);', 'mysql', false],
+            ['CREATE UNIQUE INDEX example_column1_column2_idx ON example (column1, column2);', 'mysql', true],
+            ['CREATE INDEX example_column1_column2_idx ON example (column1, column2);', 'pgsql', false],
+            ['CREATE UNIQUE INDEX example_column1_column2_idx ON example (column1, column2);', 'pgsql', true],
+            ['CREATE INDEX example_column1_column2_idx ON example (column1, column2);', 'sqlite', false],
+            ['CREATE UNIQUE INDEX example_column1_column2_idx ON example (column1, column2);', 'sqlite', true],
         ]);

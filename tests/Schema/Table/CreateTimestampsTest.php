@@ -2,7 +2,7 @@
 
 namespace Tests\Column;
 
-use Phico\Schema\Table;
+use Phico\Database\Schema\Column;
 
 
 test('can create a table with timestamps', function ($expect, $dialect) {

@@ -1,8 +1,6 @@
 <?php
 
-namespace Tests\Table;
-
-use Phico\Schema\Table;
+use Phico\Database\Schema\Table;
 
 
 test('can alter a table', function ($expect, $dialect) {
@@ -10,12 +8,12 @@ test('can alter a table', function ($expect, $dialect) {
     $t = new Table($dialect);
     $t->alter('example');
 
-    expect(strip($t))->toBe($expect);
+    expect(strip($t->toSql()))->toBe($expect);
 
 })->with([
 
-    ['ALTER TABLE `example` ( );', 'mysql'],
-    ['ALTER TABLE "example" ( );', 'pgsql'],
-    ['ALTER TABLE "example" ( );', 'sqlite'],
+            ['ALTER TABLE `example` ( );', 'mysql'],
+            ['ALTER TABLE "example" ( );', 'pgsql'],
+            ['ALTER TABLE "example" ( );', 'sqlite'],
 
-]);
+        ]);
